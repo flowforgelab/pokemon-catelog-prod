@@ -13,45 +13,37 @@ export class PricingService {
     private prisma: PrismaService,
   ) {}
 
-  async fetchPriceForCard(tcgplayerProductId: string) {
+  async fetchPriceForCard(cardId: string) {
     try {
-      // Note: TCGPlayer API requires authentication
-      // This is a simplified example - in production you'd need proper API keys
-      const apiKey = process.env.TCGPLAYER_API_KEY
+      // Use the Pokemon TCG SDK which includes cached TCGPlayer prices
+      const PokemonTCG = require('pokemon-tcg-sdk-typescript').PokemonTCG
+      const card = await PokemonTCG.findCardByID(cardId)
       
-      if (!apiKey) {
-        this.logger.warn('TCGPlayer API key not configured')
+      if (!card?.tcgplayer?.prices) {
+        this.logger.warn(`No price data available for card ${cardId}`)
         return null
       }
 
-      const response = await firstValueFrom(
-        this.httpService.get(
-          `https://api.tcgplayer.com/pricing/product/${tcgplayerProductId}`,
-          {
-            headers: {
-              'Authorization': `Bearer ${apiKey}`,
-            },
-          }
-        )
-      )
-
-      const priceData = response.data.results[0]
+      // Get prices for different conditions (focusing on Near Mint)
+      const prices = card.tcgplayer.prices
+      const nmPrices = prices.normal || prices.holofoil || prices['1stEditionHolofoil'] || {}
       
       return {
-        marketPrice: priceData.marketPrice,
-        lowPrice: priceData.lowPrice,
-        midPrice: priceData.midPrice,
-        highPrice: priceData.highPrice,
-        directLow: priceData.directLowPrice,
+        marketPrice: nmPrices.market || nmPrices.mid || 0,
+        lowPrice: nmPrices.low || 0,
+        midPrice: nmPrices.mid || 0,
+        highPrice: nmPrices.high || 0,
+        directLow: nmPrices.directLow || 0,
+        updatedAt: card.tcgplayer.updatedAt || new Date().toISOString(),
       }
     } catch (error) {
-      this.logger.error(`Failed to fetch price for ${tcgplayerProductId}:`, error)
+      this.logger.error(`Failed to fetch price for ${cardId}:`, error)
       return null
     }
   }
 
-  async updateCardPrice(cardId: string, tcgplayerProductId: string) {
-    const priceData = await this.fetchPriceForCard(tcgplayerProductId)
+  async updateCardPrice(cardId: string) {
+    const priceData = await this.fetchPriceForCard(cardId)
     
     if (!priceData) return null
 
@@ -106,16 +98,15 @@ export class PricingService {
       },
       select: {
         id: true,
-        tcgplayerUrl: true,
+        tcgId: true,
       },
+      take: 100, // Limit to avoid rate limiting
     })
 
     for (const card of cards) {
-      // Extract product ID from URL
-      const match = card.tcgplayerUrl?.match(/product\/(\d+)/)
-      if (match) {
-        await this.updateCardPrice(card.id, match[1])
-      }
+      await this.updateCardPrice(card.tcgId)
+      // Add delay to avoid rate limiting
+      await new Promise(resolve => setTimeout(resolve, 1000))
     }
 
     this.logger.log('Price update completed')

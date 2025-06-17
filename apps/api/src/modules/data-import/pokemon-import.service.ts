@@ -63,11 +63,32 @@ export class PokemonImportService {
             cardmarketUrl: card.cardmarket?.url || null,
           }
 
-          await this.prisma.card.upsert({
+          const savedCard = await this.prisma.card.upsert({
             where: { tcgId: card.id },
             update: cardData,
             create: cardData,
           })
+
+          // Import price data if available
+          if (card.tcgplayer?.prices) {
+            const prices = card.tcgplayer.prices
+            const nmPrices = prices.normal || prices.holofoil || {}
+            
+            if (nmPrices.market || nmPrices.mid) {
+              await this.prisma.priceHistory.create({
+                data: {
+                  cardId: savedCard.id,
+                  source: 'tcgplayer',
+                  condition: 'NM',
+                  marketPrice: nmPrices.market || nmPrices.mid || 0,
+                  lowPrice: nmPrices.low || 0,
+                  midPrice: nmPrices.mid || 0,
+                  highPrice: nmPrices.high || 0,
+                  directLow: nmPrices.directLow || 0,
+                },
+              })
+            }
+          }
 
           // Index in Elasticsearch
           await this.elasticsearch.index({
