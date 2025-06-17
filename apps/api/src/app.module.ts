@@ -4,6 +4,9 @@ import { GraphQLModule } from '@nestjs/graphql';
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { join } from 'path';
+import { RedisModule } from './modules/redis/redis.module';
+import { AuthModule } from './modules/auth/auth.module';
+import { UserModule } from './modules/user/user.module';
 
 @Module({
   imports: [
@@ -21,6 +24,9 @@ import { join } from 'path';
       ttl: 60000,
       limit: 100,
     }]),
+    RedisModule,
+    AuthModule,
+    UserModule,
   ],
   controllers: [],
   providers: [],

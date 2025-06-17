@@ -1,6 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  transpilePackages: ["@pokemon-catalog/shared", "@pokemon-catalog/ui"],
+  transpilePackages: ["@pokemon-catalog/shared", "@pokemon-catalog/ui", "@pokemon-catalog/database"],
   images: {
     remotePatterns: [
       {
@@ -12,9 +12,6 @@ const nextConfig = {
         hostname: 'res.cloudinary.com',
       },
     ],
-  },
-  experimental: {
-    serverActions: true,
   },
 }
 
