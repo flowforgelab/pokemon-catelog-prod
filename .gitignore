@@ -1,0 +1,75 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Testing
+coverage/
+.nyc_output
+
+# Next.js
+.next/
+out/
+build/
+dist/
+
+# Production
+*.local
+
+# Debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+.pnpm-debug.log*
+
+# Env files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Turborepo
+.turbo/
+
+# TypeScript
+*.tsbuildinfo
+
+# Prisma
+prisma/*.db
+prisma/*.db-journal
+migrations/
+
+# Docker
+.docker/
+
+# Logs
+logs/
+*.log
+
+# OS
+Thumbs.db
+
+# Temporary files
+tmp/
+temp/
+
+# Build outputs
+dist/
+build/
+.vercel/
+.netlify/
+
+# Test artifacts
+test-results/
+playwright-report/
+playwright/.cache/

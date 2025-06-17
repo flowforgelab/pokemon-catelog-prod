@@ -1,0 +1,282 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// User and Authentication
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  name          String?
+  username      String?   @unique
+  password      String?
+  image         String?
+  emailVerified DateTime?
+  
+  // OAuth accounts
+  accounts      Account[]
+  sessions      Session[]
+  
+  // User data
+  collections   Collection[]
+  decks         Deck[]
+  trades        Trade[]
+  priceAlerts   PriceAlert[]
+  
+  // Social
+  following     Follow[]     @relation("Following")
+  followers     Follow[]     @relation("Followers")
+  
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// Pokemon Cards
+model Card {
+  id                String      @id @default(cuid())
+  tcgId             String      @unique // Pokemon TCG API ID
+  name              String
+  supertype         String      // Pokemon, Trainer, Energy
+  subtypes          String[]
+  types             String[]    // Fire, Water, etc.
+  hp                Int?
+  retreatCost       String[]
+  number            String
+  artist            String?
+  rarity            String?
+  flavorText        String?     @db.Text
+  
+  // Set information
+  setId             String
+  setName           String
+  setLogo           String?
+  setSeries         String
+  setPrintedTotal   Int
+  setTotal          Int
+  setReleaseDate    DateTime
+  
+  // Images
+  imageSmall        String
+  imageLarge        String
+  
+  // Market data
+  tcgplayerUrl      String?
+  cardmarketUrl     String?
+  
+  // Game data
+  nationalPokedexNumbers Int[]
+  rules             String[]
+  ancientTrait      Json?
+  abilities         Json[]
+  attacks           Json[]
+  weaknesses        Json[]
+  resistances       Json[]
+  
+  // Legalities
+  standardLegal     Boolean     @default(false)
+  expandedLegal     Boolean     @default(false)
+  unlimitedLegal    Boolean     @default(true)
+  
+  // Competitive data
+  competitiveRating Int?        // 1-10 rating
+  competitiveNotes  String?     @db.Text
+  
+  // Relations
+  collections       CollectionCard[]
+  deckCards         DeckCard[]
+  priceHistory      PriceHistory[]
+  priceAlerts       PriceAlert[]
+  
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+  
+  @@index([name])
+  @@index([setId])
+  @@index([types])
+  @@index([rarity])
+}
+
+// User Collections
+model Collection {
+  id          String           @id @default(cuid())
+  userId      String
+  name        String
+  description String?
+  isPublic    Boolean          @default(false)
+  
+  user        User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  cards       CollectionCard[]
+  
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  
+  @@index([userId])
+}
+
+model CollectionCard {
+  id           String     @id @default(cuid())
+  collectionId String
+  cardId       String
+  quantity     Int        @default(1)
+  condition    String     @default("NM") // NM, LP, MP, HP, DMG
+  language     String     @default("EN")
+  isFirstEdition Boolean  @default(false)
+  isFoil       Boolean    @default(false)
+  notes        String?
+  
+  collection   Collection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
+  card         Card       @relation(fields: [cardId], references: [id])
+  
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  
+  @@unique([collectionId, cardId, condition, language, isFirstEdition, isFoil])
+  @@index([collectionId])
+  @@index([cardId])
+}
+
+// Deck Building
+model Deck {
+  id          String     @id @default(cuid())
+  userId      String
+  name        String
+  description String?
+  format      String     // standard, expanded, unlimited
+  isPublic    Boolean    @default(false)
+  
+  user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  cards       DeckCard[]
+  
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  
+  @@index([userId])
+  @@index([format])
+}
+
+model DeckCard {
+  id       String @id @default(cuid())
+  deckId   String
+  cardId   String
+  quantity Int    @default(1)
+  
+  deck     Deck   @relation(fields: [deckId], references: [id], onDelete: Cascade)
+  card     Card   @relation(fields: [cardId], references: [id])
+  
+  @@unique([deckId, cardId])
+  @@index([deckId])
+  @@index([cardId])
+}
+
+// Price Tracking
+model PriceHistory {
+  id         String   @id @default(cuid())
+  cardId     String
+  source     String   // tcgplayer, cardmarket
+  condition  String   // NM, LP, MP, HP, DMG
+  marketPrice Float?
+  lowPrice   Float?
+  midPrice   Float?
+  highPrice  Float?
+  directLow  Float?
+  
+  card       Card     @relation(fields: [cardId], references: [id])
+  
+  recordedAt DateTime @default(now())
+  
+  @@index([cardId, source, recordedAt])
+}
+
+model PriceAlert {
+  id         String  @id @default(cuid())
+  userId     String
+  cardId     String
+  condition  String  @default("NM")
+  targetPrice Float
+  alertType  String  // above, below
+  isActive   Boolean @default(true)
+  
+  user       User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  card       Card    @relation(fields: [cardId], references: [id])
+  
+  createdAt  DateTime @default(now())
+  
+  @@index([userId])
+  @@index([cardId])
+}
+
+// Trading
+model Trade {
+  id           String       @id @default(cuid())
+  userId       String
+  title        String
+  description  String?
+  status       String       @default("open") // open, pending, completed, cancelled
+  
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  wantCards    TradeCard[]  @relation("WantCards")
+  haveCards    TradeCard[]  @relation("HaveCards")
+  
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  
+  @@index([userId])
+  @@index([status])
+}
+
+model TradeCard {
+  id          String  @id @default(cuid())
+  cardId      String
+  quantity    Int     @default(1)
+  condition   String  @default("NM")
+  
+  wantTrades  Trade[] @relation("WantCards")
+  haveTrades  Trade[] @relation("HaveCards")
+}
+
+// Social Features
+model Follow {
+  id          String   @id @default(cuid())
+  followerId  String
+  followingId String
+  
+  follower    User     @relation("Following", fields: [followerId], references: [id], onDelete: Cascade)
+  following   User     @relation("Followers", fields: [followingId], references: [id], onDelete: Cascade)
+  
+  createdAt   DateTime @default(now())
+  
+  @@unique([followerId, followingId])
+  @@index([followerId])
+  @@index([followingId])
+}
