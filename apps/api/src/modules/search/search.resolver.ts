@@ -3,6 +3,7 @@ import { SearchService } from './search.service'
 import { SearchInput } from './dto/search.input'
 import { SearchResult } from './entities/search-result.entity'
 import { CardSuggestion } from './entities/card-suggestion.entity'
+import { Card } from './entities/card.entity'
 
 @Resolver()
 export class SearchResolver {
@@ -10,11 +11,34 @@ export class SearchResolver {
 
   @Query(() => SearchResult)
   async searchCards(@Args('input') input: SearchInput) {
-    return this.searchService.searchCards(input)
+    console.log('=== GRAPHQL RESOLVER DEBUG ===');
+    console.log('SearchResolver.searchCards called');
+    console.log('Raw input:', input);
+    console.log('Input as JSON:', JSON.stringify(input));
+    console.log('Input type:', typeof input);
+    console.log('Input constructor:', input?.constructor?.name);
+    console.log('Input keys:', Object.keys(input || {}));
+    console.log('Input.query value:', input?.query);
+    console.log('Input.query type:', typeof input?.query);
+    console.log('=== END DEBUG ===');
+    
+    const result = await this.searchService.searchCards(input);
+    console.log('SearchResolver.searchCards returning:', JSON.stringify({
+      total: result.total,
+      cardsCount: result.cards?.length || 0,
+      firstCard: result.cards?.[0]?.name || 'none',
+      searchQuery: input.query || 'none'
+    }));
+    return result;
   }
 
   @Query(() => [CardSuggestion])
   async cardSuggestions(@Args('query') query: string) {
     return this.searchService.getSuggestions(query)
+  }
+
+  @Query(() => Card, { nullable: true })
+  async card(@Args('id') id: string) {
+    return this.searchService.getCardById(id)
   }
 }

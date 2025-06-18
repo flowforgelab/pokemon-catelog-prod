@@ -15,7 +15,6 @@ export class PricingService {
 
   async fetchPriceForCard(cardId: string) {
     try {
-      // Use the Pokemon TCG SDK which includes cached TCGPlayer prices
       const PokemonTCG = require('pokemon-tcg-sdk-typescript').PokemonTCG
       const card = await PokemonTCG.findCardByID(cardId)
       
@@ -24,7 +23,6 @@ export class PricingService {
         return null
       }
 
-      // Get prices for different conditions (focusing on Near Mint)
       const prices = card.tcgplayer.prices
       const nmPrices = prices.normal || prices.holofoil || prices['1stEditionHolofoil'] || {}
       
@@ -42,7 +40,7 @@ export class PricingService {
     }
   }
 
-  async updateCardPrice(cardId: string) {
+  async updateCardPrice(cardId: string, lastPriceUpdate?: Date) {
     const priceData = await this.fetchPriceForCard(cardId)
     
     if (!priceData) return null
@@ -56,9 +54,13 @@ export class PricingService {
       },
     })
 
-    // Check for price alerts
-    await this.checkPriceAlerts(cardId, priceData.marketPrice)
+    // Update card's last price update timestamp
+    await this.prisma.card.update({
+      where: { id: cardId },
+      data: { updatedAt: new Date() }
+    })
 
+    await this.checkPriceAlerts(cardId, priceData.marketPrice)
     return priceHistory
   }
 
@@ -81,35 +83,120 @@ export class PricingService {
       include: { user: true },
     })
 
-    // In production, send notifications to users
     for (const alert of alerts) {
       this.logger.log(`Price alert triggered for user ${alert.user.email}`)
-      // Send notification...
+      // TODO: Send notification
     }
   }
 
-  @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
-  async updateAllPrices() {
-    this.logger.log('Starting daily price update...')
-    
-    const cards = await this.prisma.card.findMany({
-      where: {
-        tcgplayerUrl: { not: null },
+  // Smart priority-based price updates
+  async getCardsForUpdate(tier: 'hot' | 'active' | 'standard' | 'all') {
+    const now = new Date()
+    const queries = {
+      hot: {
+        where: {
+          OR: [
+            { marketPrice: { gte: 50 } },
+            { releaseDate: { gte: new Date(now.setDate(now.getDate() - 30)) } },
+            { collections: { some: {} } }, // Cards in collections
+          ],
+          updatedAt: { lt: new Date(now.setHours(now.getHours() - 24)) }
+        },
+        take: 1000
       },
+      active: {
+        where: {
+          standardLegal: true,
+          marketPrice: { gte: 10, lt: 50 },
+          updatedAt: { lt: new Date(now.setDate(now.getDate() - 3)) }
+        },
+        take: 2000
+      },
+      standard: {
+        where: {
+          standardLegal: true,
+          updatedAt: { lt: new Date(now.setDate(now.getDate() - 7)) }
+        },
+        take: 5000
+      },
+      all: {
+        where: {
+          updatedAt: { lt: new Date(now.setDate(now.getDate() - 30)) }
+        },
+        take: 10000
+      }
+    }
+
+    return this.prisma.card.findMany({
+      ...queries[tier],
       select: {
         id: true,
         tcgId: true,
+        updatedAt: true,
       },
-      take: 100, // Limit to avoid rate limiting
+      orderBy: { updatedAt: 'asc' }
     })
+  }
+
+  // Optimized batch update without unnecessary delays
+  async updatePriceBatch(cards: any[], delayMs = 50) {
+    let updated = 0
+    const results = []
 
     for (const card of cards) {
-      await this.updateCardPrice(card.tcgId)
-      // Add delay to avoid rate limiting
-      await new Promise(resolve => setTimeout(resolve, 1000))
+      try {
+        const result = await this.updateCardPrice(card.tcgId, card.updatedAt)
+        if (result) {
+          results.push(result)
+          updated++
+        }
+        
+        // Minimal delay only if needed
+        if (delayMs > 0) {
+          await new Promise(resolve => setTimeout(resolve, delayMs))
+        }
+      } catch (error) {
+        this.logger.error(`Failed to update price for ${card.tcgId}:`, error)
+      }
     }
 
-    this.logger.log('Price update completed')
+    return { updated, total: cards.length }
+  }
+
+  // Daily hot cards update
+  @Cron('0 2 * * *') // 2 AM
+  async updateHotCards() {
+    this.logger.log('Updating hot card prices...')
+    const cards = await this.getCardsForUpdate('hot')
+    const result = await this.updatePriceBatch(cards)
+    this.logger.log(`Updated ${result.updated}/${result.total} hot card prices`)
+  }
+
+  // Active cards every 3 days
+  @Cron('0 3 */3 * *') // 3 AM every 3 days
+  async updateActiveCards() {
+    this.logger.log('Updating active card prices...')
+    const cards = await this.getCardsForUpdate('active')
+    const result = await this.updatePriceBatch(cards)
+    this.logger.log(`Updated ${result.updated}/${result.total} active card prices`)
+  }
+
+  // Weekly standard update
+  @Cron('0 4 * * 0') // 4 AM on Sundays
+  async updateStandardCards() {
+    this.logger.log('Updating standard card prices...')
+    const cards = await this.getCardsForUpdate('standard')
+    const result = await this.updatePriceBatch(cards)
+    this.logger.log(`Updated ${result.updated}/${result.total} standard card prices`)
+  }
+
+  // Monthly full catalog
+  @Cron('0 5 1 * *') // 5 AM on the 1st of each month
+  async updateAllCards() {
+    this.logger.log('Updating all card prices...')
+    const cards = await this.getCardsForUpdate('all')
+    const result = await this.updatePriceBatch(cards)
+    this.logger.log(`Updated ${result.updated}/${result.total} card prices`)
   }
 
   async getCardPriceHistory(cardId: string, days = 30) {
@@ -123,5 +210,24 @@ export class PricingService {
       },
       orderBy: { recordedAt: 'asc' },
     })
+  }
+
+  // Get price freshness for a card
+  async getCardPriceFreshness(cardId: string) {
+    const card = await this.prisma.card.findUnique({
+      where: { id: cardId },
+      select: { updatedAt: true }
+    })
+
+    if (!card) return null
+
+    const now = new Date()
+    const daysSinceUpdate = Math.floor((now.getTime() - card.updatedAt.getTime()) / (1000 * 60 * 60 * 24))
+
+    return {
+      lastUpdate: card.updatedAt,
+      daysSinceUpdate,
+      freshness: daysSinceUpdate <= 1 ? 'fresh' : daysSinceUpdate <= 7 ? 'recent' : 'stale'
+    }
   }
 }

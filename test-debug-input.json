@@ -1,0 +1,11 @@
+{
+  "query": "query SearchCards($input: SearchInput!) { searchCards(input: $input) { total cards { id name } } }",
+  "variables": {
+    "input": {
+      "query": "Charizard",
+      "page": 1,
+      "limit": 3,
+      "types": ["Fire"]
+    }
+  }
+}

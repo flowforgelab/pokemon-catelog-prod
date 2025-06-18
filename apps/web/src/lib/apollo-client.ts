@@ -1,29 +1,56 @@
-import { ApolloClient, InMemoryCache, createHttpLink } from '@apollo/client'
+import { ApolloClient, InMemoryCache, createHttpLink, from } from '@apollo/client'
 import { setContext } from '@apollo/client/link/context'
-import { getSession } from 'next-auth/react'
+import { onError } from '@apollo/client/link/error'
 
 const httpLink = createHttpLink({
-  uri: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/graphql',
+  uri: process.env.NEXT_PUBLIC_GRAPHQL_URL || 'http://localhost:3001/graphql',
 })
 
 const authLink = setContext(async (_, { headers }) => {
-  // Get the authentication token from NextAuth
-  const session = await getSession()
+  // Try to get NextAuth session token
+  let token = null
+  
+  if (typeof window !== 'undefined') {
+    // Client-side: get from NextAuth session
+    const res = await fetch('/api/auth/session')
+    const session = await res.json()
+    token = session?.accessToken
+  }
   
   return {
     headers: {
       ...headers,
-      authorization: session?.accessToken ? `Bearer ${session.accessToken}` : '',
-    },
+      authorization: token ? `Bearer ${token}` : '',
+    }
   }
 })
 
-export const apolloClient = new ApolloClient({
-  link: authLink.concat(httpLink),
+// Error handling link
+const errorLink = onError(({ graphQLErrors, networkError }) => {
+  if (graphQLErrors) {
+    graphQLErrors.forEach(({ message, locations, path }) =>
+      console.log(
+        `[GraphQL error]: Message: ${message}, Location: ${locations}, Path: ${path}`
+      )
+    )
+  }
+  if (networkError) {
+    console.log(`[Network error]: ${networkError}`)
+  }
+})
+
+const client = new ApolloClient({
+  link: from([
+    errorLink,
+    authLink.concat(httpLink)
+  ]),
   cache: new InMemoryCache(),
   defaultOptions: {
     watchQuery: {
       fetchPolicy: 'cache-and-network',
+      errorPolicy: 'all',
     },
   },
 })
+
+export default client

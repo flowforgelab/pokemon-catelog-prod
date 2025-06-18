@@ -1,62 +1,46 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
-import { getToken } from 'next-auth/jwt'
 
-// Paths that require authentication
-const protectedPaths = [
-  '/profile',
-  '/collections',
-  '/decks',
-  '/trades',
-  '/settings',
-]
+// Rate limiting store (in production, use Redis)
+const rateLimit = new Map<string, { count: number; reset: number }>()
 
-// Paths that should redirect to home if authenticated
-const authPaths = [
-  '/auth/signin',
-  '/auth/signup',
-]
+export function middleware(request: NextRequest) {
+  // Rate limiting for API routes
+  if (request.nextUrl.pathname.startsWith('/api/')) {
+    const ip = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || '127.0.0.1'
+    const now = Date.now()
+    const windowMs = 15 * 60 * 1000 // 15 minutes
+    const maxRequests = 100
 
-export async function middleware(request: NextRequest) {
-  const token = await getToken({ req: request })
-  const isAuthenticated = !!token
-  const pathname = request.nextUrl.pathname
-
-  // Check if the path requires authentication
-  const isProtectedPath = protectedPaths.some(path => 
-    pathname.startsWith(path)
-  )
-
-  // Check if the path is an auth page
-  const isAuthPath = authPaths.some(path => 
-    pathname.startsWith(path)
-  )
-
-  // Redirect to signin if accessing protected path without auth
-  if (isProtectedPath && !isAuthenticated) {
-    const signInUrl = new URL('/auth/signin', request.url)
-    signInUrl.searchParams.set('callbackUrl', pathname)
-    return NextResponse.redirect(signInUrl)
+    const current = rateLimit.get(ip) || { count: 0, reset: now + windowMs }
+    
+    if (now > current.reset) {
+      current.count = 1
+      current.reset = now + windowMs
+    } else {
+      current.count++
+    }
+    
+    rateLimit.set(ip, current)
+    
+    if (current.count > maxRequests) {
+      return new NextResponse('Too Many Requests', { status: 429 })
+    }
   }
 
-  // Redirect to home if accessing auth pages while authenticated
-  if (isAuthPath && isAuthenticated) {
-    return NextResponse.redirect(new URL('/', request.url))
-  }
-
-  return NextResponse.next()
+  // Security headers
+  const response = NextResponse.next()
+  
+  response.headers.set('X-Frame-Options', 'DENY')
+  response.headers.set('X-Content-Type-Options', 'nosniff')
+  response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin')
+  response.headers.set('X-XSS-Protection', '1; mode=block')
+  
+  return response
 }
 
 export const config = {
   matcher: [
-    /*
-     * Match all request paths except for the ones starting with:
-     * - api (API routes)
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     * - public folder
-     */
-    '/((?!api|_next/static|_next/image|favicon.ico|public).*)',
+    '/((?!_next/static|_next/image|favicon.ico).*)',
   ],
 }

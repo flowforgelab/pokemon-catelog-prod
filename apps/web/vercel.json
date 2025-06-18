@@ -1,0 +1,10 @@
+{
+  "framework": "nextjs",
+  "buildCommand": "cd ../.. && pnpm build:web",
+  "outputDirectory": ".next",
+  "installCommand": "cd ../.. && pnpm install",
+  "env": {
+    "NEXTAUTH_URL": "https://pokemon-catalog-production.vercel.app",
+    "NEXT_PUBLIC_GRAPHQL_URL": "https://pokemon-catalog-api.vercel.app/graphql"
+  }
+}

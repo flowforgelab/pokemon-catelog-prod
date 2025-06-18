@@ -28,6 +28,27 @@ export class SearchCard {
 
   @Field({ nullable: true })
   artist?: string
+
+  @Field({ nullable: true })
+  imageSmall?: string
+
+  @Field({ nullable: true })
+  imageLarge?: string
+
+  @Field({ nullable: true })
+  marketPrice?: number
+
+  @Field({ nullable: true })
+  number?: string
+
+  @Field({ nullable: true })
+  setReleaseDate?: string
+
+  @Field({ nullable: true })
+  animeEra?: string
+
+  @Field({ nullable: true })
+  tcgplayerUrl?: string
 }
 
 @ObjectType()

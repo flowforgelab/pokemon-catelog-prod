@@ -7,275 +7,233 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// User and Authentication
 model User {
-  id            String    @id @default(cuid())
-  email         String    @unique
+  id            String       @id @default(dbgenerated("gen_random_uuid()"))
+  email         String       @unique
   name          String?
-  username      String?   @unique
+  username      String?      @unique
   password      String?
   image         String?
   emailVerified DateTime?
-  
-  // OAuth accounts
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @default(now()) @updatedAt
   accounts      Account[]
-  sessions      Session[]
-  
-  // User data
   collections   Collection[]
   decks         Deck[]
-  trades        Trade[]
-  priceAlerts   PriceAlert[]
-  
-  // Social
   following     Follow[]     @relation("Following")
   followers     Follow[]     @relation("Followers")
-  
-  createdAt     DateTime     @default(now())
-  updatedAt     DateTime     @updatedAt
+  priceAlerts   PriceAlert[]
+  sessions      Session[]
+  trades        Trade[]
 }
 
 model Account {
-  id                String  @id @default(cuid())
+  id                String  @id @default(dbgenerated("gen_random_uuid()"))
   userId            String
   type              String
   provider          String
   providerAccountId String
-  refresh_token     String? @db.Text
-  access_token      String? @db.Text
+  refresh_token     String?
+  access_token      String?
   expires_at        Int?
   token_type        String?
   scope             String?
-  id_token          String? @db.Text
+  id_token          String?
   session_state     String?
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
   @@unique([provider, providerAccountId])
 }
 
 model Session {
-  id           String   @id @default(cuid())
+  id           String   @id @default(dbgenerated("gen_random_uuid()"))
   sessionToken String   @unique
   userId       String
   expires      DateTime
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
 }
 
-// Pokemon Cards
 model Card {
-  id                String      @id @default(cuid())
-  tcgId             String      @unique // Pokemon TCG API ID
-  name              String
-  supertype         String      // Pokemon, Trainer, Energy
-  subtypes          String[]
-  types             String[]    // Fire, Water, etc.
-  hp                Int?
-  retreatCost       String[]
-  number            String
-  artist            String?
-  rarity            String?
-  flavorText        String?     @db.Text
-  
-  // Set information
-  setId             String
-  setName           String
-  setLogo           String?
-  setSeries         String
-  setPrintedTotal   Int
-  setTotal          Int
-  setReleaseDate    DateTime
-  
-  // Images
-  imageSmall        String
-  imageLarge        String
-  
-  // Market data
-  tcgplayerUrl      String?
-  cardmarketUrl     String?
-  
-  // Game data
+  id                     String           @id @default(dbgenerated("gen_random_uuid()"))
+  tcgId                  String           @unique
+  name                   String
+  supertype              String
+  subtypes               String[]
+  types                  String[]
+  hp                     Int?
+  retreatCost            String[]
+  number                 String
+  artist                 String?
+  rarity                 String?
+  flavorText             String?
+  setId                  String
+  setName                String
+  setLogo                String?
+  setSeries              String
+  setPrintedTotal        Int
+  setTotal               Int
+  setReleaseDate         DateTime
+  imageSmall             String
+  imageLarge             String
   nationalPokedexNumbers Int[]
-  rules             String[]
-  ancientTrait      Json?
-  abilities         Json[]
-  attacks           Json[]
-  weaknesses        Json[]
-  resistances       Json[]
-  
-  // Legalities
-  standardLegal     Boolean     @default(false)
-  expandedLegal     Boolean     @default(false)
-  unlimitedLegal    Boolean     @default(true)
-  
-  // Competitive data
-  competitiveRating Int?        // 1-10 rating
-  competitiveNotes  String?     @db.Text
-  
-  // Relations
-  collections       CollectionCard[]
-  deckCards         DeckCard[]
-  priceHistory      PriceHistory[]
-  priceAlerts       PriceAlert[]
-  
-  createdAt         DateTime    @default(now())
-  updatedAt         DateTime    @updatedAt
-  
+  rules                  String[]
+  ancientTrait           Json?
+  abilities              Json[]
+  attacks                Json[]
+  weaknesses             Json[]
+  resistances            Json[]
+  standardLegal          Boolean          @default(false)
+  expandedLegal          Boolean          @default(false)
+  unlimitedLegal         Boolean          @default(true)
+  competitiveRating      Int?
+  competitiveNotes       String?
+  tcgplayerUrl           String?
+  cardmarketUrl          String?
+  marketPrice            Float?
+  animeEra               String?
+  createdAt              DateTime         @default(now())
+  updatedAt              DateTime         @default(now()) @updatedAt
+  collections            CollectionCard[]
+  deckCards              DeckCard[]
+  priceAlerts            PriceAlert[]
+  priceHistory           PriceHistory[]
+
   @@index([name])
   @@index([setId])
   @@index([types])
   @@index([rarity])
+  @@index([marketPrice])
+  @@index([animeEra])
 }
 
-// User Collections
 model Collection {
-  id          String           @id @default(cuid())
+  id          String           @id @default(dbgenerated("gen_random_uuid()"))
   userId      String
   name        String
   description String?
   isPublic    Boolean          @default(false)
-  
-  user        User             @relation(fields: [userId], references: [id], onDelete: Cascade)
-  cards       CollectionCard[]
-  
   createdAt   DateTime         @default(now())
-  updatedAt   DateTime         @updatedAt
-  
+  updatedAt   DateTime         @default(now()) @updatedAt
+  user        User             @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  cards       CollectionCard[]
+
   @@index([userId])
 }
 
 model CollectionCard {
-  id           String     @id @default(cuid())
-  collectionId String
-  cardId       String
-  quantity     Int        @default(1)
-  condition    String     @default("NM") // NM, LP, MP, HP, DMG
-  language     String     @default("EN")
-  isFirstEdition Boolean  @default(false)
-  isFoil       Boolean    @default(false)
-  notes        String?
-  
-  collection   Collection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
-  card         Card       @relation(fields: [cardId], references: [id])
-  
-  createdAt    DateTime   @default(now())
-  updatedAt    DateTime   @updatedAt
-  
-  @@unique([collectionId, cardId, condition, language, isFirstEdition, isFoil])
+  id             String     @id @default(dbgenerated("gen_random_uuid()"))
+  collectionId   String
+  cardId         String
+  quantity       Int        @default(1)
+  condition      String     @default("NM")
+  language       String     @default("EN")
+  isFirstEdition Boolean    @default(false)
+  isFoil         Boolean    @default(false)
+  notes          String?
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @default(now()) @updatedAt
+  card           Card       @relation(fields: [cardId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  collection     Collection @relation(fields: [collectionId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([collectionId, cardId, condition, language, isFirstEdition, isFoil], map: "CollectionCard_unique")
   @@index([collectionId])
   @@index([cardId])
 }
 
-// Deck Building
 model Deck {
-  id          String     @id @default(cuid())
+  id          String     @id @default(dbgenerated("gen_random_uuid()"))
   userId      String
   name        String
   description String?
-  format      String     // standard, expanded, unlimited
+  format      String
   isPublic    Boolean    @default(false)
-  
-  user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  cards       DeckCard[]
-  
   createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
-  
+  updatedAt   DateTime   @default(now()) @updatedAt
+  user        User       @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  cards       DeckCard[]
+
   @@index([userId])
   @@index([format])
 }
 
 model DeckCard {
-  id       String @id @default(cuid())
+  id       String @id @default(dbgenerated("gen_random_uuid()"))
   deckId   String
   cardId   String
   quantity Int    @default(1)
-  
-  deck     Deck   @relation(fields: [deckId], references: [id], onDelete: Cascade)
-  card     Card   @relation(fields: [cardId], references: [id])
-  
+  card     Card   @relation(fields: [cardId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  deck     Deck   @relation(fields: [deckId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
   @@unique([deckId, cardId])
   @@index([deckId])
   @@index([cardId])
 }
 
-// Price Tracking
 model PriceHistory {
-  id         String   @id @default(cuid())
-  cardId     String
-  source     String   // tcgplayer, cardmarket
-  condition  String   // NM, LP, MP, HP, DMG
+  id          String   @id @default(dbgenerated("gen_random_uuid()"))
+  cardId      String
+  source      String
+  condition   String
   marketPrice Float?
-  lowPrice   Float?
-  midPrice   Float?
-  highPrice  Float?
-  directLow  Float?
-  
-  card       Card     @relation(fields: [cardId], references: [id])
-  
-  recordedAt DateTime @default(now())
-  
+  lowPrice    Float?
+  midPrice    Float?
+  highPrice   Float?
+  directLow   Float?
+  recordedAt  DateTime @default(now())
+  card        Card     @relation(fields: [cardId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
   @@index([cardId, source, recordedAt])
 }
 
 model PriceAlert {
-  id         String  @id @default(cuid())
-  userId     String
-  cardId     String
-  condition  String  @default("NM")
+  id          String   @id @default(dbgenerated("gen_random_uuid()"))
+  userId      String
+  cardId      String
+  condition   String   @default("NM")
   targetPrice Float
-  alertType  String  // above, below
-  isActive   Boolean @default(true)
-  
-  user       User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  card       Card    @relation(fields: [cardId], references: [id])
-  
-  createdAt  DateTime @default(now())
-  
+  alertType   String
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  card        Card     @relation(fields: [cardId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
   @@index([userId])
   @@index([cardId])
 }
 
-// Trading
 model Trade {
-  id           String       @id @default(cuid())
-  userId       String
-  title        String
-  description  String?
-  status       String       @default("open") // open, pending, completed, cancelled
-  
-  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  wantCards    TradeCard[]  @relation("WantCards")
-  haveCards    TradeCard[]  @relation("HaveCards")
-  
-  createdAt    DateTime     @default(now())
-  updatedAt    DateTime     @updatedAt
-  
+  id          String      @id @default(dbgenerated("gen_random_uuid()"))
+  userId      String
+  title       String
+  description String?
+  status      String      @default("open")
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @default(now()) @updatedAt
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  haveCards   TradeCard[] @relation("HaveCards")
+  wantCards   TradeCard[] @relation("WantCards")
+
   @@index([userId])
   @@index([status])
 }
 
 model TradeCard {
-  id          String  @id @default(cuid())
-  cardId      String
-  quantity    Int     @default(1)
-  condition   String  @default("NM")
-  
-  wantTrades  Trade[] @relation("WantCards")
-  haveTrades  Trade[] @relation("HaveCards")
+  id         String  @id @default(dbgenerated("gen_random_uuid()"))
+  cardId     String
+  quantity   Int     @default(1)
+  condition  String  @default("NM")
+  haveTrades Trade[] @relation("HaveCards")
+  wantTrades Trade[] @relation("WantCards")
 }
 
-// Social Features
 model Follow {
-  id          String   @id @default(cuid())
+  id          String   @id @default(dbgenerated("gen_random_uuid()"))
   followerId  String
   followingId String
-  
-  follower    User     @relation("Following", fields: [followerId], references: [id], onDelete: Cascade)
-  following   User     @relation("Followers", fields: [followingId], references: [id], onDelete: Cascade)
-  
   createdAt   DateTime @default(now())
-  
+  follower    User     @relation("Following", fields: [followerId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  following   User     @relation("Followers", fields: [followingId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
   @@unique([followerId, followingId])
   @@index([followerId])
   @@index([followingId])

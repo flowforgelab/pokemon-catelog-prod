@@ -9,13 +9,18 @@
   "scripts": {
     "dev": "turbo dev",
     "build": "turbo build",
+    "build:web": "pnpm --filter web build",
+    "build:api": "pnpm --filter api build",
     "test": "turbo test",
     "lint": "turbo lint",
+    "type-check": "turbo type-check",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
     "db:migrate": "pnpm --filter @pokemon-catalog/database migrate",
-    "db:studio": "pnpm --filter @pokemon-catalog/database studio"
+    "db:studio": "pnpm --filter @pokemon-catalog/database studio",
+    "vercel-build": "pnpm build"
   },
   "devDependencies": {
+    "@playwright/test": "^1.53.0",
     "@types/node": "^20.11.0",
     "prettier": "^3.2.4",
     "turbo": "^2.0.0",

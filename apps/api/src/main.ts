@@ -7,7 +7,7 @@ async function bootstrap() {
   
   app.useGlobalPipes(
     new ValidationPipe({
-      whitelist: true,
+      // whitelist: true, // Disabled - causes GraphQL input parsing issues
       transform: true,
     }),
   );

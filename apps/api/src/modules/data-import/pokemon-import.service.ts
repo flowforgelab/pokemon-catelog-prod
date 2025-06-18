@@ -60,19 +60,19 @@ export class PokemonImportService {
             expandedLegal: card.legalities?.expanded === 'Legal',
             unlimitedLegal: card.legalities?.unlimited === 'Legal',
             tcgplayerUrl: card.tcgplayer?.url || null,
-            cardmarketUrl: card.cardmarket?.url || null,
+            cardmarketUrl: (card as any).cardmarket?.url || null,
           }
 
           const savedCard = await this.prisma.card.upsert({
             where: { tcgId: card.id },
-            update: cardData,
-            create: cardData,
+            update: cardData as any,
+            create: cardData as any,
           })
 
           // Import price data if available
           if (card.tcgplayer?.prices) {
             const prices = card.tcgplayer.prices
-            const nmPrices = prices.normal || prices.holofoil || {}
+            const nmPrices: any = prices.normal || prices.holofoil || {}
             
             if (nmPrices.market || nmPrices.mid) {
               await this.prisma.priceHistory.create({
@@ -91,7 +91,7 @@ export class PokemonImportService {
           }
 
           // Index in Elasticsearch
-          await this.elasticsearch.index({
+          await (this.elasticsearch as any).index({
             index: 'pokemon-cards',
             id: card.id,
             body: {
@@ -133,7 +133,7 @@ export class PokemonImportService {
     const indexExists = await this.elasticsearch.indices.exists({ index: 'pokemon-cards' })
     
     if (!indexExists) {
-      await this.elasticsearch.indices.create({
+      await (this.elasticsearch as any).indices.create({
         index: 'pokemon-cards',
         body: {
           mappings: {

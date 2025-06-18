@@ -13,6 +13,8 @@ import { DataImportModule } from './modules/data-import/data-import.module';
 import { SearchModule } from './modules/search/search.module';
 import { PricingModule } from './modules/pricing/pricing.module';
 import { SyncModule } from './modules/sync/sync.module';
+import { CollectionModule } from './modules/collection/collection.module';
+import { DeckModule } from './modules/deck/deck.module';
 
 @Module({
   imports: [
@@ -44,6 +46,8 @@ import { SyncModule } from './modules/sync/sync.module';
     SearchModule,
     PricingModule,
     SyncModule,
+    CollectionModule,
+    DeckModule,
   ],
   controllers: [],
   providers: [],

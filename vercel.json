@@ -1,0 +1,41 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "apps/web/package.json",
+      "use": "@vercel/next",
+      "config": {
+        "outputDirectory": "apps/web/.next"
+      }
+    },
+    {
+      "src": "apps/api/package.json",
+      "use": "@vercel/node",
+      "config": {
+        "includeFiles": ["apps/api/dist/**", "apps/api/src/**"]
+      }
+    }
+  ],
+  "routes": [
+    {
+      "src": "/graphql(.*)",
+      "dest": "apps/api/dist/main.js"
+    },
+    {
+      "src": "/api/(.*)",
+      "dest": "apps/api/dist/main.js"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "apps/web/$1"
+    }
+  ],
+  "env": {
+    "NODE_ENV": "production"
+  },
+  "functions": {
+    "apps/api/dist/main.js": {
+      "maxDuration": 30
+    }
+  }
+}

@@ -1,0 +1,357 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
+type User {
+  id: ID!
+  email: String!
+  name: String
+  username: String
+  image: String
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
+
+type AuthResponse {
+  accessToken: String!
+  refreshToken: String
+  user: User!
+}
+
+type UserProfile {
+  id: ID!
+  email: String!
+  name: String
+  username: String
+  image: String
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  collectionsCount: Int!
+  decksCount: Int!
+  followersCount: Int!
+  followingCount: Int!
+  isFollowing: Boolean
+  collections: [UserCollection!]
+  decks: [UserDeck!]
+}
+
+type UserCollection {
+  id: String!
+  name: String!
+  description: String
+  isPublic: Boolean!
+  cardsCount: Int!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+type UserDeck {
+  id: String!
+  name: String!
+  description: String
+  format: String!
+  isPublic: Boolean!
+  cardsCount: Int!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+type SearchCard {
+  id: String!
+  name: String!
+  supertype: String!
+  types: [String!]!
+  hp: String
+  rarity: String
+  setName: String!
+  setSeries: String!
+  artist: String
+  imageSmall: String
+  imageLarge: String
+  marketPrice: Float
+  number: String
+  setReleaseDate: String
+  animeEra: String
+  tcgplayerUrl: String
+}
+
+type Facet {
+  key: String!
+  doc_count: Int!
+}
+
+type SearchFacets {
+  types: [Facet!]!
+  supertypes: [Facet!]!
+  rarities: [Facet!]!
+  setSeries: [Facet!]!
+}
+
+type SearchResult {
+  cards: [SearchCard!]!
+  total: Int!
+  facets: SearchFacets!
+}
+
+type CardSuggestion {
+  id: String!
+  name: String!
+}
+
+type Card {
+  id: String!
+  tcgId: String!
+  name: String!
+  supertype: String!
+  subtypes: [String!]
+  types: [String!]
+  hp: Int
+  retreatCost: [String!]
+  setId: String
+  setName: String
+  number: String
+  artist: String
+  rarity: String
+  flavorText: String
+  imageUrl: String
+  imageUrlHiRes: String
+  tcgplayerUrl: String
+  cardmarketUrl: String
+  abilities: JSON
+  attacks: JSON
+  weaknesses: JSON
+  resistances: JSON
+  standardLegal: Boolean!
+  expandedLegal: Boolean!
+  marketPrice: Float
+  priceHistory: JSON
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+"""
+The `JSON` scalar type represents JSON values as specified by [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf).
+"""
+scalar JSON
+
+type PriceFreshness {
+  lastUpdate: DateTime!
+  daysSinceUpdate: Float!
+  freshness: PriceFreshnessStatus!
+}
+
+enum PriceFreshnessStatus {
+  FRESH
+  RECENT
+  STALE
+}
+
+type PriceHistory {
+  id: String!
+  cardId: String!
+  source: String!
+  condition: String!
+  marketPrice: Float
+  lowPrice: Float
+  midPrice: Float
+  highPrice: Float
+  directLow: Float
+  recordedAt: DateTime!
+}
+
+type Collection {
+  id: String!
+  userId: String!
+  name: String!
+  description: String
+  isPublic: Boolean!
+  cards: [CollectionCard!]
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+type CollectionCard {
+  id: String!
+  collectionId: String!
+  cardId: String!
+  card: Card
+  quantity: Int!
+  condition: String!
+  language: String!
+  isFirstEdition: Boolean!
+  isFoil: Boolean!
+  notes: String
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+type CollectionValue {
+  collectionId: String!
+  totalValue: Float!
+  cardCount: Int!
+  uniqueCards: Int!
+  cardValues: [CardValue!]!
+}
+
+type CardValue {
+  cardId: String!
+  cardName: String!
+  quantity: Int!
+  unitPrice: Float
+  totalValue: Float!
+  lastUpdated: DateTime!
+}
+
+type Deck {
+  id: String!
+  userId: String!
+  name: String!
+  description: String
+  format: DeckFormat!
+  isPublic: Boolean!
+  cards: [DeckCard!]
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+enum DeckFormat {
+  STANDARD
+  EXPANDED
+  UNLIMITED
+}
+
+type DeckCard {
+  id: String!
+  deckId: String!
+  cardId: String!
+  card: Card
+  quantity: Int!
+}
+
+type DeckStats {
+  totalCards: Int!
+  pokemonCount: Int!
+  trainerCount: Int!
+  energyCount: Int!
+}
+
+type DeckValidation {
+  valid: Boolean!
+  issues: [String!]!
+  stats: DeckStats!
+}
+
+type Query {
+  me: User
+  profile: UserProfile!
+  userByUsername(username: String!): UserProfile!
+  followers(userId: String!, limit: Int! = 20, offset: Int! = 0): [User!]!
+  following(userId: String!, limit: Int! = 20, offset: Int! = 0): [User!]!
+  searchCards(input: SearchInput!): SearchResult!
+  cardSuggestions(query: String!): [CardSuggestion!]!
+  card(id: String!): Card
+  cardPriceFreshness(cardId: String!): PriceFreshness!
+  cardPriceHistory(cardId: String!, days: Float = 30): [PriceHistory!]!
+  myCollections: [Collection!]!
+  collection(id: String!): Collection!
+  collectionValue(id: String!): CollectionValue!
+  myDecks: [Deck!]!
+  deck(id: String!): Deck!
+  validateDeck(id: String!): DeckValidation!
+  exportDeck(id: String!): String!
+}
+
+input SearchInput {
+  query: String
+  types: [String!]
+  supertypes: [String!]
+  rarities: [String!]
+  setSeries: [String!]
+  animeEras: [String!]
+  minHp: Int
+  maxHp: Int
+  sortBy: String
+  sortOrder: String
+  page: Int = 1
+  limit: Int = 20
+}
+
+type Mutation {
+  login(input: LoginInput!): AuthResponse!
+  signup(input: SignupInput!): AuthResponse!
+  refreshToken(input: RefreshTokenInput!): AuthResponse!
+  logout: Boolean!
+  updateProfile(input: UpdateProfileInput!): UserProfile!
+  followUser(userId: String!): Boolean!
+  unfollowUser(userId: String!): Boolean!
+  createCollection(input: CreateCollectionInput!): Collection!
+  updateCollection(id: String!, input: UpdateCollectionInput!): Collection!
+  deleteCollection(id: String!): Collection!
+  addCardToCollection(input: AddCardInput!): CollectionCard!
+  removeCardFromCollection(collectionId: String!, cardId: String!, quantity: Float = 1): CollectionCard!
+  createDeck(input: CreateDeckInput!): Deck!
+  updateDeck(id: String!, input: UpdateDeckInput!): Deck!
+  deleteDeck(id: String!): Deck!
+  addCardToDeck(deckId: String!, cardId: String!, quantity: Float = 1): DeckCard!
+  removeCardFromDeck(deckId: String!, cardId: String!, quantity: Float = 1): DeckCard!
+}
+
+input LoginInput {
+  email: String!
+  password: String!
+}
+
+input SignupInput {
+  email: String!
+  password: String!
+  name: String
+}
+
+input RefreshTokenInput {
+  refreshToken: String!
+}
+
+input UpdateProfileInput {
+  name: String
+  username: String
+  image: String
+}
+
+input CreateCollectionInput {
+  name: String!
+  description: String
+}
+
+input UpdateCollectionInput {
+  name: String
+  description: String
+  isPublic: Boolean
+}
+
+input AddCardInput {
+  collectionId: String!
+  cardId: String!
+  quantity: Int = 1
+  condition: String = "NM"
+  language: String = "EN"
+  isFirstEdition: Boolean = false
+  isFoil: Boolean = false
+  notes: String
+}
+
+input CreateDeckInput {
+  name: String!
+  description: String
+  format: DeckFormat!
+}
+
+input UpdateDeckInput {
+  name: String
+  description: String
+  isPublic: Boolean
+}
