@@ -22,6 +22,9 @@
     ],
     "paths": {
       "@/*": ["./src/*"],
+      "@/components/*": ["./src/components/*"],
+      "@/lib/*": ["./src/lib/*"],
+      "@/app/*": ["./src/app/*"],
       "@pokemon-catalog/database": ["../../packages/database/src/index.ts"],
       "@pokemon-catalog/shared": ["../../packages/shared/src/index.ts"]
     }
