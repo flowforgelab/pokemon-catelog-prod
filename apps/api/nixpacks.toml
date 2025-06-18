@@ -1,0 +1,16 @@
+[phases.setup]
+nixPkgs = ["nodejs", "pnpm"]
+
+[phases.install]
+dependsOn = ["setup"]
+cmds = ["cd ../.. && pnpm install --frozen-lockfile --filter @pokemon-catalog/api..."]
+
+[phases.build]
+dependsOn = ["install"]
+cmds = ["cd ../.. && pnpm build:api"]
+
+[start]
+cmd = "node dist/main.js"
+
+[variables]
+NODE_ENV = "production"

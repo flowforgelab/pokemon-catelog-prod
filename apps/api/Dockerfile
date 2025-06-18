@@ -1,30 +1,43 @@
-FROM node:20-alpine AS base
-RUN apk add --no-cache libc6-compat
-WORKDIR /app
-RUN corepack enable
+# Use Node Alpine for smaller image
+FROM node:18-alpine AS builder
 
-FROM base AS deps
-COPY package.json pnpm-lock.yaml* ./
-COPY apps/api/package.json ./apps/api/
-COPY packages/*/package.json ./packages/*/
+# Install dependencies needed for building
+RUN apk add --no-cache python3 make g++
+
+# Install pnpm
+RUN corepack enable && corepack prepare pnpm@8.10.0 --activate
+
+# Set working directory
+WORKDIR /app
+
+# Copy package files
+COPY package.json ./
+COPY tsconfig.json ./
+COPY nest-cli.json ./
+
+# Install dependencies
 RUN pnpm install --frozen-lockfile
 
-FROM base AS builder
-COPY --from=deps /app/node_modules ./node_modules
-COPY . .
-RUN pnpm build --filter=api
+# Copy source code
+COPY src ./src
 
-FROM base AS runner
-ENV NODE_ENV=production
-RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 nestjs
+# Build the API
+RUN pnpm build
 
-COPY --from=builder /app/apps/api/dist ./apps/api/dist
+# Production image
+FROM node:18-alpine AS runner
+
+WORKDIR /app
+
+# Copy built application and dependencies
+COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/package.json ./
 COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/packages ./packages
 
-USER nestjs
-EXPOSE 3001
-ENV PORT=3001
+# Create non-root user
+RUN addgroup -g 1001 -S nodejs
+RUN adduser -S nodejs -u 1001
+USER nodejs
 
-CMD ["node", "apps/api/dist/main.js"]
+# Start the application
+CMD ["node", "dist/main.js"]
