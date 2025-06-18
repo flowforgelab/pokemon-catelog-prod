@@ -177,4 +177,4 @@ Private and confidential. All rights reserved.
 
 - Pokemon TCG API for card data
 - TCGPlayer for pricing data
-- Pokemon and all related names are trademarks of Nintendo/Game Freak
+- Pokemon and all related names are trademarks of Nintendo/Game Freak# Updated Wed Jun 18 07:30:46 PDT 2025
