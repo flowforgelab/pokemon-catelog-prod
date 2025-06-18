@@ -3,7 +3,7 @@ nixPkgs = ["nodejs-18_x", "pnpm-8_x"]
 
 [phases.install]
 dependsOn = ["setup"]
-cmds = ["pnpm install --frozen-lockfile"]
+cmds = ["npm install -g corepack@0.24.1 && corepack enable", "pnpm install --frozen-lockfile"]
 
 [phases.build]
 dependsOn = ["install"]
@@ -14,4 +14,3 @@ cmd = "cd apps/api && node dist/main.js"
 
 [variables]
 NODE_ENV = "production"
-NIXPACKS_NODE_VERSION = "18"
