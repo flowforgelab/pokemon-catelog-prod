@@ -25,8 +25,10 @@
       "@/components/*": ["./src/components/*"],
       "@/lib/*": ["./src/lib/*"],
       "@/app/*": ["./src/app/*"],
-      "@pokemon-catalog/database": ["../../packages/database/src/index.ts"],
-      "@pokemon-catalog/shared": ["../../packages/shared/src/index.ts"]
+      "@pokemon-catalog/database": ["../../packages/database/src"],
+      "@pokemon-catalog/database/*": ["../../packages/database/src/*"],
+      "@pokemon-catalog/shared": ["../../packages/shared/src"],
+      "@pokemon-catalog/shared/*": ["../../packages/shared/src/*"]
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
