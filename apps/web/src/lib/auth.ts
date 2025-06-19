@@ -4,6 +4,8 @@ import Google from "next-auth/providers/google"
 export const { handlers, signIn, signOut, auth } = NextAuth({
   debug: true, // Enable debug mode
   trustHost: true, // Trust the host header
+  secret: process.env.AUTH_SECRET,
+  basePath: '/api/auth',
   providers: [
     Google({
       clientId: process.env.AUTH_GOOGLE_ID || process.env.GOOGLE_CLIENT_ID!,
@@ -27,5 +29,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   pages: {
     signIn: '/auth/signin',
     error: '/auth/error', // Add error page
+  },
+  session: {
+    strategy: 'jwt',
   },
 })
