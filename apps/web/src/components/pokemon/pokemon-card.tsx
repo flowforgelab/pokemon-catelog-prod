@@ -104,7 +104,7 @@ const PokemonCard = React.memo(function PokemonCard({
           )}
         </div>
         
-        {price !== undefined && (
+        {price !== undefined && price !== null && (
           <div className="pt-2 border-t">
             <div className="flex justify-between items-center">
               <span className="text-2xl font-bold">
