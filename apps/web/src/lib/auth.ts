@@ -14,7 +14,6 @@ export const authOptions: NextAuthOptions = {
   secret: process.env.NEXTAUTH_SECRET,
   debug: true,
   useSecureCookies: true,
-  trustHost: true,
   callbacks: {
     async signIn({ user, account, profile }) {
       console.log('[NextAuth] SignIn callback:', { user: user.email, provider: account?.provider })
