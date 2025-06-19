@@ -119,4 +119,15 @@ export const authOptions: NextAuthOptions = {
       console.log(`[NextAuth Debug] Session event:`, message.session.user?.email)
     },
   },
+  logger: {
+    error(code, metadata) {
+      console.error('[NextAuth Error]', code, JSON.stringify(metadata, null, 2))
+    },
+    warn(code) {
+      console.warn('[NextAuth Warning]', code)
+    },
+    debug(code, metadata) {
+      console.log('[NextAuth Debug Log]', code, metadata)
+    }
+  },
 }
