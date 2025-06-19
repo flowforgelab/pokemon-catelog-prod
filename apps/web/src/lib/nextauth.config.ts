@@ -31,29 +31,65 @@ export const authOptions: NextAuthOptions = {
     maxAge: 30 * 24 * 60 * 60, // 30 days
     updateAge: 24 * 60 * 60, // 24 hours
   },
-  debug: false, // Disable debug to reduce noise
+  debug: true, // Re-enable debug to capture callback errors
   pages: {
     signIn: '/auth/signin',
     error: '/auth/error',
   },
   callbacks: {
-    async signIn({ user, account }) {
+    async signIn({ user, account, profile, email, credentials }) {
       console.log(`[NextAuth Debug] SignIn callback:`, {
         userEmail: user.email,
+        userName: user.name,
+        userImage: user.image,
         provider: account?.provider,
+        accountType: account?.type,
+        accountProviderAccountId: account?.providerAccountId,
+        profileId: profile?.sub || profile?.id,
+        emailFromParam: email,
+        timestamp: new Date().toISOString(),
       })
       
-      // Always allow OAuth sign in for now
-      return true
+      try {
+        // Always allow OAuth sign in for now
+        console.log(`[NextAuth Debug] SignIn callback returning true`)
+        return true
+      } catch (error) {
+        console.error(`[NextAuth Debug] SignIn callback error:`, error)
+        return false
+      }
     },
     
-    async session({ session, user }) {
+    async session({ session, user, token }) {
+      console.log(`[NextAuth Debug] Session callback:`, {
+        sessionUserEmail: session.user?.email,
+        userIdFromDb: user?.id,
+        tokenSub: token?.sub,
+        timestamp: new Date().toISOString(),
+      })
+      
       // Add user ID to session
       if (user && session.user) {
         session.user.id = user.id
       }
       
       return session
+    },
+    
+    async redirect({ url, baseUrl }) {
+      console.log(`[NextAuth Debug] Redirect callback:`, {
+        url,
+        baseUrl,
+        timestamp: new Date().toISOString(),
+      })
+      
+      // Allows relative callback URLs
+      if (url.startsWith("/")) return `${baseUrl}${url}`
+      
+      // Allows callback URLs on the same origin
+      if (new URL(url).origin === baseUrl) return url
+      
+      return baseUrl
     },
   },
   events: {
