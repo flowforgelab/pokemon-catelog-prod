@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { ArrowLeft, Heart, Plus, TrendingUp, TrendingDown } from 'lucide-react'
+import { ArrowLeft, Heart, Plus, TrendingUp, TrendingDown, ExternalLink, ShoppingCart } from 'lucide-react'
 import Link from 'next/link'
 import { GET_CARD_BY_ID } from '@/lib/graphql/queries'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -127,18 +127,29 @@ function CardDetailContent({ id }: { id: string }) {
               ) : (
                 <p className="text-muted-foreground">Price data not available</p>
               )}
-              <div className="space-y-2 mt-4">
+              <div className="space-y-3 mt-4">
                 <Button className="w-full">
                   <Plus className="h-4 w-4 mr-2" />
                   Add to Collection
                 </Button>
-                {card.tcgplayerUrl && (
+                {card.tcgplayerUrl ? (
+                  <Button 
+                    variant="default" 
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white" 
+                    onClick={() => window.open(card.tcgplayerUrl, '_blank')}
+                  >
+                    <ShoppingCart className="h-4 w-4 mr-2" />
+                    Buy on TCGPlayer
+                    <ExternalLink className="h-4 w-4 ml-2" />
+                  </Button>
+                ) : (
                   <Button 
                     variant="outline" 
                     className="w-full" 
-                    onClick={() => window.open(card.tcgplayerUrl, '_blank')}
+                    disabled
                   >
-                    Buy on TCGPlayer ↗
+                    <ShoppingCart className="h-4 w-4 mr-2" />
+                    Not Available for Purchase
                   </Button>
                 )}
               </div>
