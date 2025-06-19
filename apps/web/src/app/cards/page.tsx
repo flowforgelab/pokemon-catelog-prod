@@ -100,7 +100,7 @@ function CardsContent() {
     types: card.types || [],
     hp: card.hp,
     rarity: card.rarity,
-    price: card.marketPrice || 0,
+    price: card.marketPrice,
     image: card.imageSmall,
     tcgplayerUrl: card.tcgplayerUrl
   })) || []

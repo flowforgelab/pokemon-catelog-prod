@@ -141,17 +141,27 @@ export default function HomePage() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="flex justify-between items-center">
-                    <span className="text-lg text-muted-foreground">
-                      HP {card.hp || 'N/A'}
-                    </span>
-                    <div className="flex gap-1">
-                      {card.types?.map((type: string) => (
-                        <Badge key={type} variant="secondary" className="capitalize">
-                          {type}
-                        </Badge>
-                      ))}
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center">
+                      <span className="text-lg text-muted-foreground">
+                        HP {card.hp || 'N/A'}
+                      </span>
+                      <div className="flex gap-1">
+                        {card.types?.map((type: string) => (
+                          <Badge key={type} variant="secondary" className="capitalize">
+                            {type}
+                          </Badge>
+                        ))}
+                      </div>
                     </div>
+                    {card.marketPrice && (
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm text-muted-foreground">Market Price</span>
+                        <span className="text-lg font-semibold text-green-600">
+                          ${card.marketPrice.toFixed(2)}
+                        </span>
+                      </div>
+                    )}
                   </div>
                 </CardContent>
               </Card>
