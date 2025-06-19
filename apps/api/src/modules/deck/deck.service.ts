@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException, ForbiddenException, BadRequestException } from '@nestjs/common'
 import { PrismaService } from '../../common/prisma.service'
 import { DeckAnalyzerService } from './deck-analyzer.service'
-import { RecommendationService } from './recommendation.service'
+import { RecommendationService, CardRecommendation } from './recommendation.service'
 
 @Injectable()
 export class DeckService {
@@ -293,7 +293,7 @@ export class DeckService {
     })
   }
 
-  async getRecommendations(deckId: string, userId: string) {
+  async getRecommendations(deckId: string, userId: string): Promise<CardRecommendation[]> {
     const deck = await this.getDeck(deckId, userId)
     
     const deckCards = deck.cards.map(dc => ({

@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../common/prisma.service';
 import { Card } from '@prisma/client';
 
-interface CardRecommendation {
+export interface CardRecommendation {
   card: Card;
   reasoning: string;
   priority: 'high' | 'medium' | 'low';
