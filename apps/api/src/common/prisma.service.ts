@@ -15,11 +15,22 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
 
   async onModuleInit() {
     try {
+      // Reset connection to clear prepared statements
+      await this.$disconnect()
       await this.$connect()
       console.log('Prisma connected successfully')
     } catch (error) {
       console.error('Prisma connection error:', error)
-      console.log('API will start without database connection')
+      console.log('Attempting connection reset...')
+      try {
+        await this.$disconnect()
+        await new Promise(resolve => setTimeout(resolve, 1000))
+        await this.$connect()
+        console.log('Prisma reconnected successfully')
+      } catch (retryError) {
+        console.error('Prisma retry failed:', retryError)
+        console.log('API will start without database connection')
+      }
     }
   }
 
