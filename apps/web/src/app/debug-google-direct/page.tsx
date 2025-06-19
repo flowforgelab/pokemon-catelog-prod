@@ -28,43 +28,27 @@ export default function DirectGoogleTest() {
   }, [])
 
   const testDirectGoogleOAuth = () => {
-    // Get Google Client ID from environment
-    fetch('/api/debug/nextauth-config')
-      .then(res => res.json())
-      .then(config => {
-        const googleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || 'client-id-not-public'
-        
-        const params = new URLSearchParams({
-          client_id: googleClientId,
-          redirect_uri: 'https://pokemon-catelog-prod.vercel.app/debug-google-direct',
-          response_type: 'code',
-          scope: 'openid email profile',
-          state: 'test-state-' + Date.now(),
-          access_type: 'offline',
-          prompt: 'consent'
-        })
+    // We need to get the actual Google Client ID from the server
+    // since GOOGLE_CLIENT_ID is not exposed as NEXT_PUBLIC_
+    setResult({
+      action: 'Getting Google Client ID',
+      timestamp: new Date().toISOString()
+    })
 
-        const googleAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`
-        
-        setResult({
-          action: 'Redirecting to Google',
-          url: googleAuthUrl,
-          clientId: googleClientId,
-          redirectUri: 'https://pokemon-catelog-prod.vercel.app/debug-google-direct',
-          timestamp: new Date().toISOString()
-        })
+    // For now, show instructions
+    const instructionsUrl = '/debug-client-id'
+    
+    setResult({
+      error: 'Cannot proceed - Google Client ID not publicly accessible',
+      instructions: 'The Google Client ID needs to be retrieved from Google Cloud Console',
+      nextStep: 'Redirecting to debug instructions...',
+      timestamp: new Date().toISOString()
+    })
 
-        // Redirect after showing the info
-        setTimeout(() => {
-          window.location.href = googleAuthUrl
-        }, 2000)
-      })
-      .catch(error => {
-        setResult({
-          error: 'Failed to get config',
-          details: error.message
-        })
-      })
+    // Redirect to instructions page
+    setTimeout(() => {
+      window.location.href = instructionsUrl
+    }, 2000)
   }
 
   if (callbackInfo) {
