@@ -94,19 +94,37 @@ export const authOptions: NextAuthOptions = {
   },
   events: {
     async signIn(message) {
-      console.log(`[NextAuth Debug] SignIn event:`, message.user.email)
+      console.log(`[NextAuth Debug] SignIn event:`, {
+        email: message.user.email,
+        id: message.user.id,
+        isNewUser: message.isNewUser,
+      })
     },
     async signOut(message) {
       console.log(`[NextAuth Debug] SignOut event:`, message.session)
     },
     async createUser(message) {
-      console.log(`[NextAuth Debug] CreateUser event:`, message.user.email)
+      console.log(`[NextAuth Debug] CreateUser event:`, {
+        email: message.user.email,
+        id: message.user.id,
+      })
     },
     async linkAccount(message) {
-      console.log(`[NextAuth Debug] LinkAccount event:`, message.user.email)
+      console.log(`[NextAuth Debug] LinkAccount event:`, {
+        email: message.user.email,
+        provider: message.account.provider,
+        providerAccountId: message.account.providerAccountId,
+      })
     },
     async session(message) {
       console.log(`[NextAuth Debug] Session event:`, message.session.user?.email)
+    },
+    async error(error) {
+      console.error(`[NextAuth Debug] Error event:`, {
+        error: error.name,
+        message: error.message,
+        cause: error.cause,
+      })
     },
   },
 }
