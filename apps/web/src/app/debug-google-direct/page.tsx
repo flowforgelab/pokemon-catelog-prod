@@ -1,9 +1,31 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 export default function DirectGoogleTest() {
   const [result, setResult] = useState<any>(null)
+  const [callbackInfo, setCallbackInfo] = useState<any>(null)
+
+  useEffect(() => {
+    // Check if we're receiving a callback (client-side only)
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search)
+      const code = urlParams.get('code')
+      const error = urlParams.get('error')
+      const state = urlParams.get('state')
+
+      if (code || error) {
+        setCallbackInfo({
+          code: code ? 'Present (length: ' + code.length + ')' : 'Missing',
+          error: error,
+          error_description: urlParams.get('error_description'),
+          state: state,
+          url: window.location.href,
+          timestamp: new Date().toISOString()
+        })
+      }
+    }
+  }, [])
 
   const testDirectGoogleOAuth = () => {
     // Get Google Client ID from environment
@@ -45,13 +67,7 @@ export default function DirectGoogleTest() {
       })
   }
 
-  // Check if we're receiving a callback
-  const urlParams = new URLSearchParams(window.location.search)
-  const code = urlParams.get('code')
-  const error = urlParams.get('error')
-  const state = urlParams.get('state')
-
-  if (code || error) {
+  if (callbackInfo) {
     return (
       <div className="container mx-auto p-8">
         <h1 className="text-2xl font-bold mb-4">Google OAuth Callback Received</h1>
@@ -59,18 +75,11 @@ export default function DirectGoogleTest() {
         <div className="bg-gray-100 dark:bg-gray-800 p-4 rounded">
           <h2 className="font-semibold mb-2">Callback Details</h2>
           <pre className="text-sm overflow-auto">
-            {JSON.stringify({
-              code: code ? 'Present (length: ' + code.length + ')' : 'Missing',
-              error: error,
-              error_description: urlParams.get('error_description'),
-              state: state,
-              url: window.location.href,
-              timestamp: new Date().toISOString()
-            }, null, 2)}
+            {JSON.stringify(callbackInfo, null, 2)}
           </pre>
         </div>
 
-        {code && (
+        {callbackInfo.code !== 'Missing' && (
           <div className="mt-4 bg-green-100 dark:bg-green-900 p-4 rounded">
             <p className="text-green-800 dark:text-green-200">
               ✅ Success! Google OAuth returned an authorization code. 
@@ -79,14 +88,14 @@ export default function DirectGoogleTest() {
           </div>
         )}
 
-        {error && (
+        {callbackInfo.error && (
           <div className="mt-4 bg-red-100 dark:bg-red-900 p-4 rounded">
             <p className="text-red-800 dark:text-red-200">
-              ❌ Error: {error}
+              ❌ Error: {callbackInfo.error}
             </p>
-            {urlParams.get('error_description') && (
+            {callbackInfo.error_description && (
               <p className="text-red-600 dark:text-red-400 text-sm mt-2">
-                {urlParams.get('error_description')}
+                {callbackInfo.error_description}
               </p>
             )}
           </div>

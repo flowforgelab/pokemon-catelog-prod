@@ -45,7 +45,7 @@ export const authOptions: NextAuthOptions = {
         provider: account?.provider,
         accountType: account?.type,
         accountProviderAccountId: account?.providerAccountId,
-        profileId: profile?.sub || profile?.id,
+        profileId: profile?.sub || (profile as any)?.id,
         emailFromParam: email,
         timestamp: new Date().toISOString(),
       })
