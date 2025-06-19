@@ -119,12 +119,5 @@ export const authOptions: NextAuthOptions = {
     async session(message) {
       console.log(`[NextAuth Debug] Session event:`, message.session.user?.email)
     },
-    async error(error) {
-      console.error(`[NextAuth Debug] Error event:`, {
-        error: error.name,
-        message: error.message,
-        cause: error.cause,
-      })
-    },
   },
 }
