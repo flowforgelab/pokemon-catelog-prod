@@ -98,6 +98,26 @@ export class AuthService {
     return this.login(result)
   }
 
+  async createOrLoginOAuthUser(email: string, name?: string) {
+    let user = await this.prisma.user.findUnique({
+      where: { email },
+    })
+
+    if (!user) {
+      // Create OAuth user without password
+      user = await this.prisma.user.create({
+        data: {
+          email,
+          name,
+          // OAuth users don't have passwords
+        },
+      })
+    }
+
+    const { password: _, ...result } = user
+    return this.login(result)
+  }
+
   async logout(token: string): Promise<boolean> {
     try {
       const payload = this.jwtService.verify(token)

@@ -126,6 +126,7 @@ export class SearchService {
         const direction = input.sortBy === 'price-high' ? 'DESC' : 'ASC';
         
         // Use raw SQL for complex price sorting with subquery
+        const searchPattern = searchQuery ? `%${searchQuery}%` : null;
         const cardsWithPricing = await prisma.$queryRaw`
           SELECT DISTINCT c."tcgId", c.name, c.supertype, c.types, c.hp, c.rarity, 
                  c."setName", c."setSeries", c.artist, c."imageSmall", c."imageLarge", 
@@ -137,7 +138,7 @@ export class SearchService {
             FROM "PriceHistory"
             ORDER BY "cardId", "recordedAt" DESC
           ) ph ON c.id = ph."cardId"
-          ${searchQuery ? Prisma.sql`WHERE c.name ILIKE ${`%${searchQuery}%`}` : Prisma.empty}
+          ${searchPattern ? Prisma.sql`WHERE c.name ILIKE ${searchPattern}` : Prisma.empty}
           ORDER BY COALESCE(ph."marketPrice", 0) ${direction === 'DESC' ? Prisma.sql`DESC` : Prisma.sql`ASC`}, c.name ASC
           LIMIT ${limit} OFFSET ${skip}
         `;

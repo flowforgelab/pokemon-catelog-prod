@@ -25,6 +25,11 @@ export class AuthResolver {
   }
 
   @Mutation(() => AuthResponse)
+  async oauthLogin(@Args('email') email: string, @Args('name', { nullable: true }) name?: string) {
+    return this.authService.createOrLoginOAuthUser(email, name)
+  }
+
+  @Mutation(() => AuthResponse)
   async refreshToken(@Args('input') input: RefreshTokenInput) {
     return this.authService.refreshToken(input.refreshToken)
   }
