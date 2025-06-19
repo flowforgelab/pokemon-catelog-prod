@@ -2,7 +2,7 @@ import { Resolver, Query, Mutation, Args, Context } from '@nestjs/graphql'
 import { UseGuards } from '@nestjs/common'
 import { DeckService } from './deck.service'
 import { GqlAuthGuard } from '../../common/guards/gql-auth.guard'
-import { Deck, DeckCard, DeckValidation, CreateDeckInput, UpdateDeckInput } from './deck.types'
+import { Deck, DeckCard, DeckValidation, DeckAnalysis, CardRecommendation, CreateDeckInput, UpdateDeckInput } from './deck.types'
 
 @Resolver(() => Deck)
 @UseGuards(GqlAuthGuard)
@@ -71,5 +71,20 @@ export class DeckResolver {
     @Context() ctx
   ) {
     return this.deckService.removeCard(deckId, cardId, ctx.req.user.id, quantity)
+  }
+
+  @Mutation(() => DeckAnalysis)
+  async analyzeDeck(@Args('id') id: string, @Context() ctx) {
+    return this.deckService.analyzeDeck(id, ctx.req.user.id)
+  }
+
+  @Query(() => DeckAnalysis, { nullable: true })
+  async deckAnalysis(@Args('id') id: string, @Context() ctx) {
+    return this.deckService.getAnalysis(id, ctx.req.user.id)
+  }
+
+  @Query(() => [CardRecommendation])
+  async deckRecommendations(@Args('id') id: string, @Context() ctx) {
+    return this.deckService.getRecommendations(id, ctx.req.user.id)
   }
 }

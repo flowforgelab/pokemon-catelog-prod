@@ -1,9 +1,15 @@
 import { Injectable, NotFoundException, ForbiddenException, BadRequestException } from '@nestjs/common'
 import { PrismaService } from '../../common/prisma.service'
+import { DeckAnalyzerService } from './deck-analyzer.service'
+import { RecommendationService } from './recommendation.service'
 
 @Injectable()
 export class DeckService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private deckAnalyzer: DeckAnalyzerService,
+    private recommendationService: RecommendationService
+  ) {}
 
   async getDecks(userId: string) {
     return this.prisma.deck.findMany({
@@ -247,5 +253,60 @@ export class DeckService {
     lines.push('Total Cards - 60', '')
 
     return lines.join('\n')
+  }
+
+  async analyzeDeck(deckId: string, userId: string) {
+    const deck = await this.getDeck(deckId, userId)
+    
+    const deckCards = deck.cards.map(dc => ({
+      card: dc.card,
+      quantity: dc.quantity
+    }))
+
+    const analysis = this.deckAnalyzer.analyzeDeck(deckCards)
+
+    // Save analysis to database
+    const savedAnalysis = await this.prisma.deckAnalysis.create({
+      data: {
+        deckId,
+        strategy: analysis.strategy,
+        consistencyScore: analysis.consistencyScore,
+        energyCurve: analysis.energyCurve,
+        recommendations: analysis.recommendations,
+        warnings: analysis.warnings
+      }
+    })
+
+    return { ...analysis, id: savedAnalysis.id }
+  }
+
+  async getAnalysis(deckId: string, userId: string) {
+    const deck = await this.prisma.deck.findUnique({ where: { id: deckId } })
+    if (!deck) throw new NotFoundException('Deck not found')
+    if (deck.userId !== userId && !deck.isPublic) {
+      throw new ForbiddenException('Access denied')
+    }
+
+    return this.prisma.deckAnalysis.findFirst({
+      where: { deckId },
+      orderBy: { createdAt: 'desc' }
+    })
+  }
+
+  async getRecommendations(deckId: string, userId: string) {
+    const deck = await this.getDeck(deckId, userId)
+    
+    const deckCards = deck.cards.map(dc => ({
+      card: dc.card,
+      quantity: dc.quantity
+    }))
+
+    const analysis = this.deckAnalyzer.analyzeDeck(deckCards)
+    
+    return this.recommendationService.generateRecommendations(
+      deckCards,
+      analysis.strategy,
+      deck.format
+    )
   }
 }

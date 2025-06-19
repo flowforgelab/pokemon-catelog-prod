@@ -7,7 +7,15 @@ export enum DeckFormat {
   UNLIMITED = 'unlimited'
 }
 
+export enum DeckStrategy {
+  AGGRO = 'aggro',
+  CONTROL = 'control',
+  COMBO = 'combo',
+  MIDRANGE = 'midrange'
+}
+
 registerEnumType(DeckFormat, { name: 'DeckFormat' })
+registerEnumType(DeckStrategy, { name: 'DeckStrategy' })
 
 @ObjectType()
 export class Deck {
@@ -106,4 +114,46 @@ export class UpdateDeckInput {
 
   @Field({ nullable: true })
   isPublic?: boolean
+}
+
+@ObjectType()
+export class DeckAnalysis {
+  @Field()
+  id: string
+
+  @Field(() => DeckStrategy)
+  strategy: DeckStrategy
+
+  @Field(() => Int)
+  consistencyScore: number
+
+  @Field(() => [Int])
+  energyCurve: number[]
+
+  @Field(() => [String])
+  recommendations: string[]
+
+  @Field(() => [String])
+  warnings: string[]
+
+  @Field()
+  createdAt: Date
+}
+
+@ObjectType()
+export class CardRecommendation {
+  @Field(() => Card)
+  card: Card
+
+  @Field()
+  reasoning: string
+
+  @Field()
+  priority: string
+
+  @Field(() => Card, { nullable: true })
+  replacementFor?: Card
+
+  @Field(() => [String])
+  synergies: string[]
 }
