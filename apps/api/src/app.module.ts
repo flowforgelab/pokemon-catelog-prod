@@ -15,6 +15,8 @@ import { PricingModule } from './modules/pricing/pricing.module';
 import { SyncModule } from './modules/sync/sync.module';
 import { CollectionModule } from './modules/collection/collection.module';
 import { DeckModule } from './modules/deck/deck.module';
+import { AppController } from './app.controller';
+import { PrismaService } from './common/prisma.service';
 
 @Module({
   imports: [
@@ -49,7 +51,7 @@ import { DeckModule } from './modules/deck/deck.module';
     CollectionModule,
     DeckModule,
   ],
-  controllers: [],
-  providers: [],
+  controllers: [AppController],
+  providers: [PrismaService],
 })
 export class AppModule {}
