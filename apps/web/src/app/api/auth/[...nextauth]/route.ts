@@ -2,7 +2,11 @@ import { NextRequest } from 'next/server'
 import NextAuth from 'next-auth'
 import { authOptions } from '@/lib/auth'
 
-async function handler(req: NextRequest) {
+// Create the handler first
+const handler = NextAuth(authOptions)
+
+// Wrap with debugging
+async function debugHandler(req: NextRequest) {
   try {
     // Log the incoming request for debugging
     const url = new URL(req.url)
@@ -23,8 +27,8 @@ async function handler(req: NextRequest) {
       })
     }
     
-    // Use NextAuth with proper request handling
-    return await NextAuth(req, authOptions)
+    // Call the NextAuth handler
+    return await handler(req)
   } catch (error) {
     console.error('[NextAuth Error]:', {
       error: error instanceof Error ? error.message : error,
@@ -37,4 +41,4 @@ async function handler(req: NextRequest) {
   }
 }
 
-export { handler as GET, handler as POST }
+export { debugHandler as GET, debugHandler as POST }
