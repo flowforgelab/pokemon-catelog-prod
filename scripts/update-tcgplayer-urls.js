@@ -12,20 +12,22 @@ async function updateTCGPlayerURLs() {
     await client.connect();
     console.log('Connected to database');
 
-    // Get cards without TCGPlayer URLs but with pricing (meaning they should have URLs)
+    // Get ALL cards without TCGPlayer URLs (not just ones with pricing)
     const cardsWithoutUrls = await client.query(`
       SELECT "tcgId", name, "marketPrice" 
       FROM "Card" 
       WHERE "tcgplayerUrl" IS NULL 
-      AND "marketPrice" IS NOT NULL 
-      AND "marketPrice" > 0
-      LIMIT 100
+      ORDER BY "tcgId"
     `);
 
-    console.log(`Found ${cardsWithoutUrls.rows.length} cards with pricing but missing TCGPlayer URLs`);
+    console.log(`Found ${cardsWithoutUrls.rows.length} cards missing TCGPlayer URLs`);
 
     let updated = 0;
+    let processed = 0;
+    const total = cardsWithoutUrls.rows.length;
+    
     for (const card of cardsWithoutUrls.rows) {
+      processed++;
       try {
         // Fetch card data from Pokemon TCG API
         const response = await fetch(`https://api.pokemontcg.io/v2/cards/${card.tcgId}`);
@@ -38,13 +40,19 @@ async function updateTCGPlayerURLs() {
             [data.data.tcgplayer.url, card.tcgId]
           );
           updated++;
-          console.log(`Updated ${card.name} (${card.tcgId}) with URL: ${data.data.tcgplayer.url}`);
+          console.log(`[${processed}/${total}] Updated ${card.name} (${card.tcgId})`);
+        } else {
+          if (processed % 50 === 0) {
+            console.log(`[${processed}/${total}] Processing... (${updated} updated so far)`);
+          }
         }
         
-        // Rate limiting - wait 100ms between requests
-        await new Promise(resolve => setTimeout(resolve, 100));
+        // Rate limiting - wait 50ms between requests (slightly faster)
+        await new Promise(resolve => setTimeout(resolve, 50));
       } catch (error) {
         console.error(`Error updating ${card.tcgId}:`, error.message);
+        // On error, wait a bit longer before continuing
+        await new Promise(resolve => setTimeout(resolve, 200));
       }
     }
 
