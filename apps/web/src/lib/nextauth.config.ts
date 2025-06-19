@@ -1,20 +1,12 @@
 import GoogleProvider from 'next-auth/providers/google'
 import GitHubProvider from 'next-auth/providers/github'
-import { PrismaAdapter } from '@auth/prisma-adapter'
-import { PrismaClient } from '@pokemon-catalog/database'
+import { PostgreSQLAdapter } from './nextauth-adapter'
 import type { NextAuthOptions } from 'next-auth'
 
-// Use singleton pattern to avoid multiple instances
-const globalForPrisma = globalThis as unknown as {
-  prisma: PrismaClient | undefined
-}
-
-const prisma = globalForPrisma.prisma ?? new PrismaClient()
-
-if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma
+// PostgreSQL adapter avoids Prisma deployment issues
 
 export const authOptions: NextAuthOptions = {
-  adapter: PrismaAdapter(prisma),
+  adapter: PostgreSQLAdapter(),
   secret: process.env.NEXTAUTH_SECRET,
   providers: [
     GoogleProvider({

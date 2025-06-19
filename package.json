@@ -17,7 +17,7 @@
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
     "db:migrate": "pnpm --filter @pokemon-catalog/database migrate",
     "db:studio": "pnpm --filter @pokemon-catalog/database studio",
-    "vercel-build": "pnpm build:web"
+    "vercel-build": "pnpm --filter web build"
   },
   "devDependencies": {
     "@playwright/test": "^1.53.0",
