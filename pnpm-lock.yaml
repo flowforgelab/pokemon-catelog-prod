@@ -274,6 +274,9 @@ importers:
       '@types/node':
         specifier: ^20.11.0
         version: 20.19.1
+      '@types/pg':
+        specifier: ^8.11.10
+        version: 8.15.4
       '@types/react':
         specifier: ^18.2.48
         version: 18.3.23
@@ -335,9 +338,6 @@ importers:
         specifier: ^4.4.7
         version: 4.5.7(@types/react@18.3.23)(react@19.1.0)
     devDependencies:
-      '@types/pg':
-        specifier: ^8.11.10
-        version: 8.15.4
       eslint:
         specifier: ^8.56.0
         version: 8.57.1
@@ -3867,7 +3867,7 @@ packages:
       '@types/node': 20.19.1
       pg-protocol: 1.10.0
       pg-types: 2.2.0
-    dev: true
+    dev: false
 
   /@types/prop-types@15.7.15:
     resolution: {integrity: sha512-F6bEyamV9jKGAFBEmlQnesRPGOQqS2+Uwi0Em15xenOxHaf2hv6L8YCVn3rPdPJOiJfPiCnLIRyvwVaqMY3MIw==}
@@ -8761,6 +8761,7 @@ packages:
   /pg-int8@1.0.1:
     resolution: {integrity: sha512-WCtabS6t3c8SkpDBUlb1kjOs7l66xsGdKpIPZsg4wR+B3+u9UAum2odSsF9tnvxg80h4ZxLWMy4pRjOsFIqQpw==}
     engines: {node: '>=4.0.0'}
+    dev: false
 
   /pg-pool@3.10.0(pg@8.16.0):
     resolution: {integrity: sha512-DzZ26On4sQ0KmqnO34muPcmKbhrjmyiO4lCCR0VwEd7MjmiKf5NTg/6+apUEu0NF7ESa37CGzFxH513CoUmWnA==}
@@ -8772,6 +8773,7 @@ packages:
 
   /pg-protocol@1.10.0:
     resolution: {integrity: sha512-IpdytjudNuLv8nhlHs/UrVBhU0e78J0oIS/0AVdTbWxSOkFUVdsHC/NrorO6nXsQNDTT1kzDSOMJubBQviX18Q==}
+    dev: false
 
   /pg-types@2.2.0:
     resolution: {integrity: sha512-qTAAlrEsl8s4OiEQY69wDvcMIdQN6wdz5ojQiOy6YRMuynxenON0O5oCpJI6lshc6scgAY8qvJ2On/p+CXY0GA==}
@@ -8782,6 +8784,7 @@ packages:
       postgres-bytea: 1.0.0
       postgres-date: 1.0.7
       postgres-interval: 1.2.0
+    dev: false
 
   /pg@8.16.0:
     resolution: {integrity: sha512-7SKfdvP8CTNXjMUzfcVTaI+TDzBEeaUnVwiVGZQD1Hh33Kpev7liQba9uLd4CfN8r9mCVsD0JIpq03+Unpz+kg==}
@@ -8954,20 +8957,24 @@ packages:
   /postgres-array@2.0.0:
     resolution: {integrity: sha512-VpZrUqU5A69eQyW2c5CA1jtLecCsN2U/bD6VilrFDWq5+5UIEVO7nazS3TEcHf1zuPYO/sqGvUvW62g86RXZuA==}
     engines: {node: '>=4'}
+    dev: false
 
   /postgres-bytea@1.0.0:
     resolution: {integrity: sha512-xy3pmLuQqRBZBXDULy7KbaitYqLcmxigw14Q5sj8QBVLqEwXfeybIKVWiqAXTlcvdvb0+xkOtDbfQMOf4lST1w==}
     engines: {node: '>=0.10.0'}
+    dev: false
 
   /postgres-date@1.0.7:
     resolution: {integrity: sha512-suDmjLVQg78nMK2UZ454hAG+OAW+HQPZ6n++TNDUX+L0+uUlLywnoxJKDou51Zm+zTCjrCl0Nq6J9C5hP9vK/Q==}
     engines: {node: '>=0.10.0'}
+    dev: false
 
   /postgres-interval@1.2.0:
     resolution: {integrity: sha512-9ZhXKM/rw350N1ovuWHbGxnGh/SNJ4cnxHiM0rxE4VN41wsg8P8zWn9hv/buK00RP4WvlOyr/RBDiptyxVbkZQ==}
     engines: {node: '>=0.10.0'}
     dependencies:
       xtend: 4.0.2
+    dev: false
 
   /preact-render-to-string@5.2.6(preact@10.26.9):
     resolution: {integrity: sha512-JyhErpYOvBV1hEPwIxc/fHWXPfnEGdRKxc8gFdAZ7XV4tlzyzG847XAyEZqoDnynP88akM4eaHcSOzNcLWFguw==}
