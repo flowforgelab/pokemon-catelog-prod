@@ -16,6 +16,16 @@ function AuthErrorContent() {
         return 'You do not have permission to sign in.'
       case 'Verification':
         return 'The verification token has expired or has already been used.'
+      case 'Callback':
+        return 'OAuth callback failed. The redirect URI may not be configured correctly in the OAuth provider. Please contact support.'
+      case 'OAuthSignin':
+        return 'Error in constructing an authorization URL.'
+      case 'OAuthCallback':
+        return 'Error in handling the response from the OAuth provider.'
+      case 'OAuthCreateAccount':
+        return 'Could not create OAuth account in the database.'
+      case 'OAuthAccountNotLinked':
+        return 'Email on the account is already linked, but not with this OAuth account.'
       default:
         return 'An error occurred during authentication.'
     }
