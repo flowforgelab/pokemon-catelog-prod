@@ -4,7 +4,14 @@ import GitHubProvider from 'next-auth/providers/github'
 import { PrismaAdapter } from '@auth/prisma-adapter'
 import { PrismaClient } from '@pokemon-catalog/database'
 
-const prisma = new PrismaClient()
+// Use singleton pattern to avoid multiple instances
+const globalForPrisma = globalThis as unknown as {
+  prisma: PrismaClient | undefined
+}
+
+const prisma = globalForPrisma.prisma ?? new PrismaClient()
+
+if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma
 
 const handler = NextAuth({
   adapter: PrismaAdapter(prisma),
