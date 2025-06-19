@@ -28,8 +28,8 @@ export const auth = betterAuth({
   },
 
   // Environment configuration
-  baseURL: process.env.BETTER_AUTH_URL || process.env.NEXTAUTH_URL,
-  secret: process.env.BETTER_AUTH_SECRET || process.env.NEXTAUTH_SECRET,
+  baseURL: process.env.BETTER_AUTH_URL || process.env.NEXTAUTH_URL || "http://localhost:3000",
+  secret: process.env.BETTER_AUTH_SECRET || process.env.NEXTAUTH_SECRET!,
 
   // Add Next.js cookies plugin for proper cookie handling
   plugins: [nextCookies()],
