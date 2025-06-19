@@ -1,6 +1,10 @@
+import { NextRequest } from 'next/server'
 import NextAuth from 'next-auth'
 import { authOptionsJWT } from '@/lib/nextauth.config.jwt'
 
-const handler = NextAuth(authOptionsJWT)
+// Create handler with proper types for Next.js 15
+async function auth(req: NextRequest, context: { params: { nextauth: string[] } }) {
+  return NextAuth(req as any, context as any, authOptionsJWT)
+}
 
-export { handler as GET, handler as POST }
+export { auth as GET, auth as POST }
