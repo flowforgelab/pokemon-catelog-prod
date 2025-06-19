@@ -15,7 +15,7 @@ export function PostgreSQLAdapter(): Adapter {
       const { rows } = await pool.query(
         `INSERT INTO "User" (email, name, image, "emailVerified") 
          VALUES ($1, $2, $3, $4) 
-         RETURNING id, email, name, image, "emailVerified", "createdAt"`,
+         RETURNING id, email, name, image, "emailVerified"`,
         [user.email, user.name, user.image, user.emailVerified]
       )
       return rows[0]
@@ -104,7 +104,7 @@ export function PostgreSQLAdapter(): Adapter {
       const { rows } = await pool.query(
         `INSERT INTO "Session" ("sessionToken", "userId", expires) 
          VALUES ($1, $2, $3) 
-         RETURNING id, "sessionToken", "userId", expires`,
+         RETURNING "sessionToken", "userId", expires`,
         [sessionToken, userId, expires]
       )
       return rows[0]
@@ -112,7 +112,10 @@ export function PostgreSQLAdapter(): Adapter {
 
     async getSessionAndUser(sessionToken: string): Promise<{ session: AdapterSession; user: AdapterUser } | null> {
       const { rows } = await pool.query(
-        `SELECT s.*, u.* FROM "Session" s
+        `SELECT 
+         s."sessionToken", s."userId", s.expires,
+         u.id as "userId", u.email, u.name, u.image, u."emailVerified"
+         FROM "Session" s
          JOIN "User" u ON s."userId" = u.id
          WHERE s."sessionToken" = $1`,
         [sessionToken]
@@ -120,11 +123,21 @@ export function PostgreSQLAdapter(): Adapter {
       
       if (!rows[0]) return null
 
-      const { id, sessionToken: token, userId, expires, ...userData } = rows[0]
+      const row = rows[0]
       
       return {
-        session: { id, sessionToken: token, userId, expires },
-        user: { id: userId, ...userData }
+        session: { 
+          sessionToken: row.sessionToken,
+          userId: row.userId,
+          expires: row.expires
+        },
+        user: { 
+          id: row.userId,
+          email: row.email,
+          name: row.name,
+          image: row.image,
+          emailVerified: row.emailVerified
+        }
       }
     },
 
