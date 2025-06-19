@@ -220,9 +220,6 @@ importers:
       '@apollo/client':
         specifier: ^3.11.12
         version: 3.13.8(@types/react@18.3.23)(graphql@16.11.0)(react-dom@19.1.0)(react@19.1.0)
-      '@pokemon-catalog/database':
-        specifier: workspace:*
-        version: link:../../packages/database
       '@radix-ui/react-alert-dialog':
         specifier: ^1.1.14
         version: 1.1.14(@types/react-dom@18.3.7)(@types/react@18.3.23)(react-dom@19.1.0)(react@19.1.0)
@@ -274,9 +271,6 @@ importers:
       '@types/node':
         specifier: ^20.11.0
         version: 20.19.1
-      '@types/pg':
-        specifier: ^8.11.10
-        version: 8.15.4
       '@types/react':
         specifier: ^18.2.48
         version: 18.3.23
@@ -310,9 +304,6 @@ importers:
       next-themes:
         specifier: ^0.4.6
         version: 0.4.6(react-dom@19.1.0)(react@19.1.0)
-      pg:
-        specifier: ^8.16.0
-        version: 8.16.0
       postcss:
         specifier: ^8.4.33
         version: 8.5.6
@@ -3876,14 +3867,6 @@ packages:
     dependencies:
       '@types/express': 4.17.23
     dev: true
-
-  /@types/pg@8.15.4:
-    resolution: {integrity: sha512-I6UNVBAoYbvuWkkU3oosC8yxqH21f4/Jc4DK71JLG3dT2mdlGe1z+ep/LQGXaKaOgcvUrsQoPRqfgtMcvZiJhg==}
-    dependencies:
-      '@types/node': 20.19.1
-      pg-protocol: 1.10.0
-      pg-types: 2.2.0
-    dev: false
 
   /@types/prop-types@15.7.15:
     resolution: {integrity: sha512-F6bEyamV9jKGAFBEmlQnesRPGOQqS2+Uwi0Em15xenOxHaf2hv6L8YCVn3rPdPJOiJfPiCnLIRyvwVaqMY3MIw==}
