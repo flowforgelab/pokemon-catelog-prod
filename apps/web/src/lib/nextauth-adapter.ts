@@ -7,9 +7,17 @@ import type { Adapter, AdapterUser, AdapterAccount, AdapterSession, Verification
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
+  connectionTimeoutMillis: 5000, // 5 second timeout
+  idleTimeoutMillis: 10000, // 10 second idle timeout
+  max: 10, // maximum number of clients in the pool
 })
 
 export function PostgreSQLAdapter(): Adapter {
+  // Test connection on adapter creation
+  pool.query('SELECT 1').catch(err => {
+    console.error('[PostgreSQL Adapter] Connection test failed:', err)
+  })
+  
   return {
     async createUser(user: Omit<AdapterUser, 'id'>): Promise<AdapterUser> {
       try {
