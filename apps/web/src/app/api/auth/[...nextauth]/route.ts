@@ -15,6 +15,7 @@ if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma
 
 const handler = NextAuth({
   adapter: PrismaAdapter(prisma),
+  secret: process.env.NEXTAUTH_SECRET,
   providers: [
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID!,
@@ -26,13 +27,25 @@ const handler = NextAuth({
     }),
   ],
   session: {
-    strategy: 'jwt',
+    strategy: 'jwt', // Keep JWT strategy
     maxAge: 30 * 24 * 60 * 60, // 30 days
   },
   jwt: {
     secret: process.env.NEXTAUTH_SECRET,
   },
+  debug: process.env.NODE_ENV === 'development',
+  pages: {
+    signIn: '/auth/signin',
+    error: '/auth/error',
+  },
   callbacks: {
+    async redirect({ url, baseUrl }) {
+      // Allows relative callback URLs
+      if (url.startsWith("/")) return `${baseUrl}${url}`
+      // Allows callback URLs on the same origin
+      else if (new URL(url).origin === baseUrl) return url
+      return baseUrl
+    },
     async jwt({ token, user, account }) {
       if (user && account) {
         // New login - get JWT from our backend
@@ -81,11 +94,6 @@ const handler = NextAuth({
       }
       return session
     },
-  },
-  pages: {
-    signIn: '/auth/signin',
-    error: '/auth/error',
-  },
 })
 
 export { handler as GET, handler as POST }
