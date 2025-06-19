@@ -154,14 +154,18 @@ export default function HomePage() {
                         ))}
                       </div>
                     </div>
-                    {card.marketPrice && (
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm text-muted-foreground">Market Price</span>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-muted-foreground">Market Price</span>
+                      {card.marketPrice ? (
                         <span className="text-lg font-semibold text-green-600">
                           ${card.marketPrice.toFixed(2)}
                         </span>
-                      </div>
-                    )}
+                      ) : (
+                        <span className="text-sm text-muted-foreground italic">
+                          No Price Available
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </CardContent>
               </Card>

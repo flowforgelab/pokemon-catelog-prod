@@ -104,27 +104,31 @@ const PokemonCard = React.memo(function PokemonCard({
           )}
         </div>
         
-        {price !== undefined && price !== null && (
-          <div className="pt-2 border-t">
-            <div className="flex justify-between items-center">
-              <span className="text-2xl font-bold">
+        <div className="pt-2 border-t">
+          <div className="flex justify-between items-center">
+            {price !== undefined && price !== null ? (
+              <span className="text-2xl font-bold text-green-600">
                 ${price.toFixed(2)}
               </span>
-              {tcgplayerUrl && (
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    window.open(tcgplayerUrl, '_blank')
-                  }}
-                  className="text-muted-foreground hover:text-primary p-1 rounded"
-                  title="Buy on TCGPlayer"
-                >
-                  <ExternalLink className="h-4 w-4" />
-                </button>
-              )}
-            </div>
+            ) : (
+              <span className="text-sm text-muted-foreground italic">
+                No Price Available
+              </span>
+            )}
+            {tcgplayerUrl && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation()
+                  window.open(tcgplayerUrl, '_blank')
+                }}
+                className="text-muted-foreground hover:text-primary p-1 rounded"
+                title="Buy on TCGPlayer"
+              >
+                <ExternalLink className="h-4 w-4" />
+              </button>
+            )}
           </div>
-        )}
+        </div>
       </CardContent>
     </Card>
   )
