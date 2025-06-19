@@ -12,13 +12,20 @@ const pool = new Pool({
 export function PostgreSQLAdapter(): Adapter {
   return {
     async createUser(user: Omit<AdapterUser, 'id'>): Promise<AdapterUser> {
-      const { rows } = await pool.query(
-        `INSERT INTO "User" (email, name, image, "emailVerified") 
-         VALUES ($1, $2, $3, $4) 
-         RETURNING id, email, name, image, "emailVerified"`,
-        [user.email, user.name, user.image, user.emailVerified]
-      )
-      return rows[0]
+      try {
+        console.log('[PostgreSQL Adapter] Creating user:', user.email)
+        const { rows } = await pool.query(
+          `INSERT INTO "User" (email, name, image, "emailVerified") 
+           VALUES ($1, $2, $3, $4) 
+           RETURNING id, email, name, image, "emailVerified"`,
+          [user.email, user.name || null, user.image || null, user.emailVerified || null]
+        )
+        console.log('[PostgreSQL Adapter] User created:', rows[0].id)
+        return rows[0]
+      } catch (error) {
+        console.error('[PostgreSQL Adapter] createUser error:', error)
+        throw error
+      }
     },
 
     async getUser(id: string): Promise<AdapterUser | null> {
@@ -38,13 +45,20 @@ export function PostgreSQLAdapter(): Adapter {
     },
 
     async getUserByAccount({ providerAccountId, provider }: Pick<AdapterAccount, 'provider' | 'providerAccountId'>): Promise<AdapterUser | null> {
-      const { rows } = await pool.query(
-        `SELECT u.* FROM "User" u
-         JOIN "Account" a ON u.id = a."userId"
-         WHERE a.provider = $1 AND a."providerAccountId" = $2`,
-        [provider, providerAccountId]
-      )
-      return rows[0] || null
+      try {
+        console.log('[PostgreSQL Adapter] Getting user by account:', { provider, providerAccountId })
+        const { rows } = await pool.query(
+          `SELECT u.id, u.email, u.name, u.image, u."emailVerified" FROM "User" u
+           JOIN "Account" a ON u.id = a."userId"
+           WHERE a.provider = $1 AND a."providerAccountId" = $2`,
+          [provider, providerAccountId]
+        )
+        console.log('[PostgreSQL Adapter] Found user:', rows[0]?.email || 'none')
+        return rows[0] || null
+      } catch (error) {
+        console.error('[PostgreSQL Adapter] getUserByAccount error:', error)
+        throw error
+      }
     },
 
     async updateUser(user: Partial<AdapterUser> & Pick<AdapterUser, 'id'>): Promise<AdapterUser> {
@@ -79,25 +93,31 @@ export function PostgreSQLAdapter(): Adapter {
     },
 
     async linkAccount(account: AdapterAccount): Promise<AdapterAccount | null | undefined> {
-      await pool.query(
-        `INSERT INTO "Account" 
-         ("userId", type, provider, "providerAccountId", refresh_token, access_token, expires_at, token_type, scope, id_token, session_state)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
-        [
-          account.userId,
-          account.type,
-          account.provider,
-          account.providerAccountId,
-          account.refresh_token,
-          account.access_token,
-          account.expires_at,
-          account.token_type,
-          account.scope,
-          account.id_token,
-          account.session_state,
-        ]
-      )
-      return account
+      try {
+        await pool.query(
+          `INSERT INTO "Account" 
+           ("userId", type, provider, "providerAccountId", refresh_token, access_token, expires_at, token_type, scope, id_token, session_state)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
+          [
+            account.userId,
+            account.type,
+            account.provider,
+            account.providerAccountId,
+            account.refresh_token || null,
+            account.access_token || null,
+            account.expires_at || null,
+            account.token_type || null,
+            account.scope || null,
+            account.id_token || null,
+            account.session_state || null,
+          ]
+        )
+        return account
+      } catch (error) {
+        console.error('[PostgreSQL Adapter] linkAccount error:', error)
+        console.error('[PostgreSQL Adapter] Account data:', JSON.stringify(account, null, 2))
+        throw error
+      }
     },
 
     async createSession({ sessionToken, userId, expires }: { sessionToken: string; userId: string; expires: Date }): Promise<AdapterSession> {
