@@ -4,9 +4,9 @@ import { NextRequest, NextResponse } from "next/server";
 let authHandlers: { GET: any; POST: any } | null = null;
 
 try {
-  const { auth } = require("@/lib/auth-drizzle");
+  const { auth } = require("@/lib/auth-simple");
   authHandlers = toNextJsHandler(auth);
-  console.log("✅ Better Auth handlers created successfully with Drizzle");
+  console.log("✅ Better Auth handlers created successfully with simple config");
 } catch (error) {
   console.error("❌ Failed to create Better Auth handlers:", error);
 }
