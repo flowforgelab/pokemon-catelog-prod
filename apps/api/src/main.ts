@@ -30,7 +30,6 @@ async function bootstrap() {
 
   app.enableCors({
     origin: [
-      'http://localhost:3000',
       'https://pokemon-catelog-prod.vercel.app',
       'https://pokemon-catalog-production.vercel.app',
       process.env.FRONTEND_URL

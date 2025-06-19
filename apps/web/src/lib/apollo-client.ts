@@ -3,7 +3,7 @@ import { setContext } from '@apollo/client/link/context'
 import { onError } from '@apollo/client/link/error'
 
 const httpLink = createHttpLink({
-  uri: process.env.NEXT_PUBLIC_GRAPHQL_URL || 'http://localhost:3001/graphql',
+  uri: process.env.NEXT_PUBLIC_GRAPHQL_URL || 'https://pokemon-catelog-prod-production.up.railway.app/graphql',
 })
 
 const authLink = setContext(async (_, { headers }) => {

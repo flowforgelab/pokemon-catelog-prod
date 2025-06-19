@@ -30,7 +30,7 @@ const handler = NextAuth({
       if (user && account) {
         // New login - get JWT from our backend
         try {
-          const response = await fetch(`${process.env.NEXT_PUBLIC_GRAPHQL_URL || 'http://localhost:3001/graphql'}`, {
+          const response = await fetch(`${process.env.NEXT_PUBLIC_GRAPHQL_URL || 'https://pokemon-catelog-prod-production.up.railway.app/graphql'}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
