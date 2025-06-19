@@ -1,19 +1,20 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest } from 'next/server'
 import NextAuth from 'next-auth'
 import { authOptions } from '@/lib/auth'
 
-async function handler(req: NextRequest, context: { params: { nextauth: string[] } }) {
+async function handler(req: NextRequest) {
   try {
     // Log the incoming request for debugging
-    const { params } = context
-    const isCallback = params.nextauth?.[0] === 'callback'
+    const url = new URL(req.url)
+    const pathSegments = url.pathname.split('/').filter(Boolean)
+    const isCallback = pathSegments[3] === 'callback' // /api/auth/callback/google
     
     if (isCallback) {
       console.log('[NextAuth Debug] Callback received:', {
         url: req.url,
         method: req.method,
-        params: params.nextauth,
-        searchParams: Object.fromEntries(req.nextUrl.searchParams.entries()),
+        pathname: url.pathname,
+        searchParams: Object.fromEntries(url.searchParams.entries()),
         headers: {
           'user-agent': req.headers.get('user-agent'),
           'referer': req.headers.get('referer'),
@@ -22,8 +23,8 @@ async function handler(req: NextRequest, context: { params: { nextauth: string[]
       })
     }
     
-    // Call NextAuth with proper App Router signature
-    return await NextAuth(req as any, context as any, authOptions)
+    // Use NextAuth with proper request handling
+    return await NextAuth(req, authOptions)
   } catch (error) {
     console.error('[NextAuth Error]:', {
       error: error instanceof Error ? error.message : error,
@@ -32,8 +33,7 @@ async function handler(req: NextRequest, context: { params: { nextauth: string[]
       timestamp: new Date().toISOString()
     })
     
-    // Return a proper error response
-    return NextResponse.redirect(new URL('/api/auth/signin?error=Configuration', req.url))
+    throw error // Let NextAuth handle the error
   }
 }
 
