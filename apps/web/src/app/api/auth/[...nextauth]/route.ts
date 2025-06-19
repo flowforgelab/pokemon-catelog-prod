@@ -34,26 +34,23 @@ const handler = NextAuth({
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-              query: `mutation LoginOrCreateUser($input: SignupInput!) {
-                signup(input: $input) {
+              query: `mutation OAuthLogin($email: String!, $name: String) {
+                oauthLogin(email: $email, name: $name) {
                   accessToken
                   user { id email name }
                 }
               }`,
               variables: {
-                input: {
-                  email: user.email,
-                  password: 'oauth-user', // OAuth users don't need real passwords
-                  name: user.name
-                }
+                email: user.email,
+                name: user.name
               }
             })
           })
           
           const data = await response.json()
-          if (data.data?.signup?.accessToken) {
-            token.accessToken = data.data.signup.accessToken
-            token.backendUserId = data.data.signup.user.id
+          if (data.data?.oauthLogin?.accessToken) {
+            token.accessToken = data.data.oauthLogin.accessToken
+            token.backendUserId = data.data.oauthLogin.user.id
           }
         } catch (error) {
           console.error('Failed to get backend token:', error)

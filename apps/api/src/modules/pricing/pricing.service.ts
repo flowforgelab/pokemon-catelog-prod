@@ -139,7 +139,7 @@ export class PricingService {
   }
 
   // Optimized batch update without unnecessary delays
-  async updatePriceBatch(cards: any[], delayMs = 50) {
+  async updatePriceBatch(cards: { tcgId: string; updatedAt: Date }[], delayMs = 50) {
     let updated = 0
     const results = []
 

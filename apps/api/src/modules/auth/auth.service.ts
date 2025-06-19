@@ -32,7 +32,7 @@ export class AuthService {
     return result
   }
 
-  async login(user: any) {
+  async login(user: { id: string; email: string; name?: string | null }) {
     const sessionId = randomUUID()
     const payload = { email: user.email, sub: user.id, sessionId }
     const accessToken = this.jwtService.sign(payload)

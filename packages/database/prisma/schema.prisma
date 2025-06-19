@@ -183,6 +183,7 @@ model PriceHistory {
   card        Card     @relation(fields: [cardId], references: [id], onDelete: NoAction, onUpdate: NoAction)
 
   @@index([cardId, source, recordedAt])
+  @@index([cardId, recordedAt(sort: Desc)])
 }
 
 model PriceAlert {

@@ -1,3 +1,4 @@
+import * as React from 'react'
 import { PokemonCard } from './pokemon-card'
 import { cn } from '@/lib/utils'
 
@@ -17,7 +18,7 @@ interface PokemonGridProps {
   className?: string
 }
 
-export function PokemonGrid({ 
+const PokemonGrid = React.memo(function PokemonGrid({ 
   cards, 
   loading, 
   onCardClick,
@@ -47,4 +48,6 @@ export function PokemonGrid({
       }
     </div>
   )
-}
+})
+
+export { PokemonGrid }

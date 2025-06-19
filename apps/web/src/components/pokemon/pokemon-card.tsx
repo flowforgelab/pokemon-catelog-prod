@@ -20,7 +20,7 @@ interface PokemonCardProps {
   loading?: boolean
 }
 
-export function PokemonCard({
+const PokemonCard = React.memo(function PokemonCard({
   id,
   name,
   image,
@@ -128,4 +128,6 @@ export function PokemonCard({
       </CardContent>
     </Card>
   )
-}
+})
+
+export { PokemonCard }
