@@ -2,35 +2,9 @@ import NextAuth from "next-auth"
 import Google from "next-auth/providers/google"
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
-  debug: true, // Enable debug mode
-  trustHost: true, // Trust the host header
-  secret: process.env.AUTH_SECRET,
-  basePath: '/api/auth',
-  providers: [
-    Google({
-      clientId: process.env.AUTH_GOOGLE_ID || process.env.GOOGLE_CLIENT_ID!,
-      clientSecret: process.env.AUTH_GOOGLE_SECRET || process.env.GOOGLE_CLIENT_SECRET!,
-    }),
-  ],
-  callbacks: {
-    async session({ session, token }) {
-      if (token.sub && session.user) {
-        session.user.id = token.sub
-      }
-      return session
-    },
-    async jwt({ token, user }) {
-      if (user) {
-        token.sub = user.id
-      }
-      return token
-    },
-  },
+  providers: [Google],
   pages: {
     signIn: '/auth/signin',
-    error: '/auth/error', // Add error page
-  },
-  session: {
-    strategy: 'jwt',
+    error: '/auth/error',
   },
 })
