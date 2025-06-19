@@ -9,6 +9,9 @@ export class CacheInterceptor implements NestInterceptor {
 
   async intercept(context: ExecutionContext, next: CallHandler): Promise<Observable<any>> {
     const request = context.switchToHttp().getRequest()
+    if (!request) {
+      return next.handle()
+    }
     const cacheKey = this.generateCacheKey(request)
     
     // Try to get from cache
