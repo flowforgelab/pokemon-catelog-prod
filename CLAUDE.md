@@ -132,7 +132,7 @@ Key modules in `apps/api/src/modules/`:
 **CRITICAL**: Update these in Railway dashboard:
 
 ```bash
-DATABASE_URL=postgresql://postgres.zgzvwrhoprhdvdnwofiq:tesfa5-peHbuv-sojnuz@db.zgzvwrhoprhdvdnwofiq.supabase.co:6543/postgres?pgbouncer=true&connection_limit=5&pool_timeout=300&sslmode=require
+DATABASE_URL=postgresql://postgres.zgzvwrhoprhdvdnwofiq:tesfa5-peHbuv-sojnuz@db.zgzvwrhoprhdvdnwofiq.supabase.co:6543/postgres?pgbouncer=true&sslmode=require
 
 DIRECT_URL=postgresql://postgres.zgzvwrhoprhdvdnwofiq:tesfa5-peHbuv-sojnuz@db.zgzvwrhoprhdvdnwofiq.supabase.co:5432/postgres?sslmode=require
 
