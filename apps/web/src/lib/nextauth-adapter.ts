@@ -1,5 +1,5 @@
 import { Pool } from 'pg'
-import type { Adapter } from 'next-auth/adapters'
+import type { Adapter, AdapterUser, AdapterAccount, AdapterSession, VerificationToken } from 'next-auth/adapters'
 
 // Direct PostgreSQL adapter for NextAuth
 // This avoids Prisma deployment issues on Vercel
@@ -11,7 +11,7 @@ const pool = new Pool({
 
 export function PostgreSQLAdapter(): Adapter {
   return {
-    async createUser(user) {
+    async createUser(user: Omit<AdapterUser, 'id'>): Promise<AdapterUser> {
       const { rows } = await pool.query(
         `INSERT INTO "User" (email, name, image, "emailVerified") 
          VALUES ($1, $2, $3, $4) 
@@ -21,7 +21,7 @@ export function PostgreSQLAdapter(): Adapter {
       return rows[0]
     },
 
-    async getUser(id) {
+    async getUser(id: string): Promise<AdapterUser | null> {
       const { rows } = await pool.query(
         `SELECT id, email, name, image, "emailVerified" FROM "User" WHERE id = $1`,
         [id]
@@ -29,7 +29,7 @@ export function PostgreSQLAdapter(): Adapter {
       return rows[0] || null
     },
 
-    async getUserByEmail(email) {
+    async getUserByEmail(email: string): Promise<AdapterUser | null> {
       const { rows } = await pool.query(
         `SELECT id, email, name, image, "emailVerified" FROM "User" WHERE email = $1`,
         [email]
@@ -37,7 +37,7 @@ export function PostgreSQLAdapter(): Adapter {
       return rows[0] || null
     },
 
-    async getUserByAccount({ providerAccountId, provider }) {
+    async getUserByAccount({ providerAccountId, provider }: Pick<AdapterAccount, 'provider' | 'providerAccountId'>): Promise<AdapterUser | null> {
       const { rows } = await pool.query(
         `SELECT u.* FROM "User" u
          JOIN "Account" a ON u.id = a."userId"
@@ -47,7 +47,7 @@ export function PostgreSQLAdapter(): Adapter {
       return rows[0] || null
     },
 
-    async updateUser(user) {
+    async updateUser(user: Partial<AdapterUser> & Pick<AdapterUser, 'id'>): Promise<AdapterUser> {
       const updates = []
       const values = []
       let paramCount = 1
@@ -78,7 +78,7 @@ export function PostgreSQLAdapter(): Adapter {
       return rows[0]
     },
 
-    async linkAccount(account) {
+    async linkAccount(account: AdapterAccount): Promise<AdapterAccount | null | undefined> {
       await pool.query(
         `INSERT INTO "Account" 
          ("userId", type, provider, "providerAccountId", refresh_token, access_token, expires_at, token_type, scope, id_token, session_state)
@@ -100,7 +100,7 @@ export function PostgreSQLAdapter(): Adapter {
       return account
     },
 
-    async createSession({ sessionToken, userId, expires }) {
+    async createSession({ sessionToken, userId, expires }: { sessionToken: string; userId: string; expires: Date }): Promise<AdapterSession> {
       const { rows } = await pool.query(
         `INSERT INTO "Session" ("sessionToken", "userId", expires) 
          VALUES ($1, $2, $3) 
@@ -110,7 +110,7 @@ export function PostgreSQLAdapter(): Adapter {
       return rows[0]
     },
 
-    async getSessionAndUser(sessionToken) {
+    async getSessionAndUser(sessionToken: string): Promise<{ session: AdapterSession; user: AdapterUser } | null> {
       const { rows } = await pool.query(
         `SELECT s.*, u.* FROM "Session" s
          JOIN "User" u ON s."userId" = u.id
@@ -128,7 +128,7 @@ export function PostgreSQLAdapter(): Adapter {
       }
     },
 
-    async updateSession({ sessionToken, ...data }) {
+    async updateSession({ sessionToken, ...data }: Partial<AdapterSession> & Pick<AdapterSession, 'sessionToken'>): Promise<AdapterSession | null | undefined> {
       const updates = []
       const values = []
       let paramCount = 1
@@ -151,11 +151,11 @@ export function PostgreSQLAdapter(): Adapter {
       return rows[0]
     },
 
-    async deleteSession(sessionToken) {
+    async deleteSession(sessionToken: string): Promise<void> {
       await pool.query(`DELETE FROM "Session" WHERE "sessionToken" = $1`, [sessionToken])
     },
 
-    async createVerificationToken({ identifier, expires, token }) {
+    async createVerificationToken({ identifier, expires, token }: VerificationToken): Promise<VerificationToken | null | undefined> {
       const { rows } = await pool.query(
         `INSERT INTO "VerificationToken" (identifier, expires, token) 
          VALUES ($1, $2, $3) 
@@ -165,7 +165,7 @@ export function PostgreSQLAdapter(): Adapter {
       return rows[0]
     },
 
-    async useVerificationToken({ identifier, token }) {
+    async useVerificationToken({ identifier, token }: { identifier: string; token: string }): Promise<VerificationToken | null> {
       const { rows } = await pool.query(
         `DELETE FROM "VerificationToken" 
          WHERE identifier = $1 AND token = $2 
@@ -175,11 +175,11 @@ export function PostgreSQLAdapter(): Adapter {
       return rows[0] || null
     },
 
-    async deleteUser(userId) {
+    async deleteUser(userId: string): Promise<void> {
       await pool.query(`DELETE FROM "User" WHERE id = $1`, [userId])
     },
 
-    async unlinkAccount({ providerAccountId, provider }) {
+    async unlinkAccount({ providerAccountId, provider }: Pick<AdapterAccount, 'provider' | 'providerAccountId'>): Promise<void> {
       await pool.query(
         `DELETE FROM "Account" WHERE provider = $1 AND "providerAccountId" = $2`,
         [provider, providerAccountId]
