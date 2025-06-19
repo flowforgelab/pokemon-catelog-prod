@@ -3,6 +3,8 @@ import { PrismaClient } from '@prisma/client'
 
 @Injectable()
 export class PrismaService extends PrismaClient implements OnModuleInit, OnModuleDestroy {
+  private connectionId = 0
+
   constructor() {
     super({
       datasources: {
@@ -12,6 +14,23 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
       },
       log: ['query', 'info', 'warn', 'error'],
     })
+  }
+
+  // Helper method to create fresh connection
+  async createFreshConnection() {
+    const connectionId = ++this.connectionId
+    console.log(`Creating fresh connection #${connectionId}`)
+    
+    // Disconnect current connection
+    await this.$disconnect()
+    
+    // Wait a moment
+    await new Promise(resolve => setTimeout(resolve, 100))
+    
+    // Connect with fresh session
+    await this.$connect()
+    
+    return connectionId
   }
 
   async onModuleInit() {

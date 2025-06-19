@@ -284,6 +284,7 @@ input SearchInput {
 type Mutation {
   login(input: LoginInput!): AuthResponse!
   signup(input: SignupInput!): AuthResponse!
+  oauthLogin(email: String!, name: String): AuthResponse!
   refreshToken(input: RefreshTokenInput!): AuthResponse!
   logout: Boolean!
   updateProfile(input: UpdateProfileInput!): UserProfile!
