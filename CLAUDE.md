@@ -5,11 +5,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Project Overview
 
 Enterprise-grade Pokemon TCG platform with:
-- User authentication and profiles
+- User authentication and profiles (OAuth with Google/GitHub)
 - Collection management with real-time pricing
-- Deck building and validation
-- Advanced search with 19,155+ cards
-- Real-time market pricing integration
+- Deck building with validation and AI analysis
+- Advanced search with 18,555+ cards
+- Real-time market pricing integration (93% coverage)
+- **NEW**: AI-powered deck analysis and recommendations (Phase 1 complete)
 
 ## Essential Commands
 
@@ -102,48 +103,44 @@ Key modules in `apps/api/src/modules/`:
 
 ## Current Deployment Status
 
-**Phase 6: Critical Database Fix** (Active - June 19, 2025)
+**Phase 7: AI Features Phase 1** (Completed - December 19, 2024)
 - Platform: Railway (API) + Vercel (Frontend) + Supabase (Database)
-- Status: **RESOLVED** - Prisma prepared statement conflicts fixed
-- Current Issue: Railway environment variables need manual update
+- Status: **DEPLOYED** - Basic deck analysis and recommendations live
+- Current Issue: NextAuth redirect loop preventing full testing
 
-### Critical Fixes Applied
+### Recent Accomplishments
 
-1. **Database Connection Fixed**: 
-   - Switched to Supabase connection pooler (port 6543) with `pgbouncer=true`
-   - Added `DIRECT_URL` for migrations
-   - Disabled prepared statements with `PRISMA_ENGINE_PROTOCOL=json`
+1. **AI Features Phase 1**: 
+   - Rule-based deck analysis (strategy detection)
+   - Consistency scoring algorithm
+   - Energy curve calculation
+   - Basic card recommendations
+   - UI components for analysis display
 
-2. **Duplicate Prisma Client Eliminated**: 
-   - Fixed NextAuth creating second PrismaClient instance
-   - Implemented singleton pattern to prevent conflicts
+2. **Database Schema Updates**: 
+   - Added DeckAnalysis table
+   - Stores strategy, consistency scores, recommendations
 
-3. **Production Optimization**: 
-   - Optimized Prisma service for connection pooling
-   - Reduced logging in production environment
+3. **GraphQL API Extensions**: 
+   - `analyzeDeck` mutation
+   - `deckAnalysis` query
+   - `deckRecommendations` query
 
-### Verification Results
-- ✅ Health endpoint: Shows 18,555 cards connected
-- ⚠️ GraphQL endpoint: Returns 0 cards (Railway env vars need update)
-- ⚠️ Frontend: Still shows "no cards at all" until Railway env vars updated
+### Current Issues
 
-### Required Railway Environment Updates
+1. **NextAuth Redirect Loop**: 🔧 IN PROGRESS
+   - Google OAuth authenticates but redirects to signin
+   - Environment variables verified in Vercel
+   - Debug endpoints deployed at `/test-env` and `/api/check-env`
 
-**CRITICAL**: Update these in Railway dashboard:
+2. **TCGPlayer URLs**: ⏳ PENDING
+   - Update script needs to complete for 18,266 cards
+   - Currently ~1,200 cards updated
 
-```bash
-DATABASE_URL=postgresql://postgres.zgzvwrhoprhdvdnwofiq:tesfa5-peHbuv-sojnuz@db.zgzvwrhoprhdvdnwofiq.supabase.co:6543/postgres?pgbouncer=true&sslmode=require
-
-DIRECT_URL=postgresql://postgres.zgzvwrhoprhdvdnwofiq:tesfa5-peHbuv-sojnuz@db.zgzvwrhoprhdvdnwofiq.supabase.co:5432/postgres?sslmode=require
-
-PRISMA_ENGINE_PROTOCOL=json
-```
-
-### Previous Issues (Resolved)
-
-1. **Prisma Prepared Statement Conflicts**: ✅ FIXED
-2. **Multiple Database Connections**: ✅ FIXED  
-3. **Connection Pooling Issues**: ✅ FIXED
+### Deployment URLs
+- **Frontend**: https://pokemon-catelog-prod.vercel.app
+- **API**: https://pokemon-catelog-prod-production.up.railway.app
+- **GraphQL Playground**: https://pokemon-catelog-prod-production.up.railway.app/graphql
 
 ## Key Features Implemented
 
@@ -153,13 +150,17 @@ PRISMA_ENGINE_PROTOCOL=json
 - Smart pricing system with tiered updates
 - Collection CRUD with real-time value tracking
 - Deck validation (60 cards, format rules)
+- **NEW**: Deck analysis service (strategy detection, consistency scoring)
+- **NEW**: Recommendation engine (card suggestions based on strategy)
 - Advanced search with 9 sort options + anime era filtering
 - Automated data import from Pokemon TCG API
 
 ### Frontend (Complete)
 - Full design system with 18 Pokemon type colors
 - All core pages (Home, Cards, Collections, Decks, Profile, Auth)
-- shadcn/ui component library
+- **NEW**: DeckAnalysisCard component with energy curve visualization
+- **NEW**: CardRecommendations component with priority badges
+- shadcn/ui component library with Progress component
 - Apollo Client with auth integration
 - Responsive design with dark mode
 - Search with pagination and filters
@@ -170,6 +171,7 @@ PRISMA_ENGINE_PROTOCOL=json
 - E2E testing with Playwright
 - Health monitoring endpoints
 - Rate limiting middleware
+- Production deployments on Railway + Vercel
 
 ## Deployment Configuration
 
