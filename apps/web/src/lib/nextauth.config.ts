@@ -34,15 +34,22 @@ export const authOptions: NextAuthOptions = {
         userEmail: user.email,
         userName: user.name,
         userImage: user.image,
+        userId: user.id,
         provider: account?.provider,
         accountType: account?.type,
         accountProviderAccountId: account?.providerAccountId,
+        accountUserId: account?.userId,
         profileId: profile?.sub || (profile as any)?.id,
         emailFromParam: email,
         timestamp: new Date().toISOString(),
       })
       
       try {
+        // Log the full account object
+        if (account) {
+          console.log(`[NextAuth Debug] Full account object:`, JSON.stringify(account, null, 2))
+        }
+        
         // Always allow OAuth sign in for now
         console.log(`[NextAuth Debug] SignIn callback returning true`)
         return true

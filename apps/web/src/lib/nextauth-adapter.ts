@@ -37,11 +37,18 @@ export function PostgreSQLAdapter(): Adapter {
     },
 
     async getUserByEmail(email: string): Promise<AdapterUser | null> {
-      const { rows } = await pool.query(
-        `SELECT id, email, name, image, "emailVerified" FROM "User" WHERE email = $1`,
-        [email]
-      )
-      return rows[0] || null
+      try {
+        console.log('[PostgreSQL Adapter] Getting user by email:', email)
+        const { rows } = await pool.query(
+          `SELECT id, email, name, image, "emailVerified" FROM "User" WHERE email = $1`,
+          [email]
+        )
+        console.log('[PostgreSQL Adapter] Found user by email:', rows[0]?.id || 'none')
+        return rows[0] || null
+      } catch (error) {
+        console.error('[PostgreSQL Adapter] getUserByEmail error:', error)
+        throw error
+      }
     },
 
     async getUserByAccount({ providerAccountId, provider }: Pick<AdapterAccount, 'provider' | 'providerAccountId'>): Promise<AdapterUser | null> {
