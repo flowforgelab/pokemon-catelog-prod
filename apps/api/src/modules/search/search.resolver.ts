@@ -1,15 +1,18 @@
 import { Resolver, Query, Args } from '@nestjs/graphql'
+import { UseInterceptors } from '@nestjs/common'
 import { SearchService } from './search.service'
 import { SearchInput } from './dto/search.input'
 import { SearchResult } from './entities/search-result.entity'
 import { CardSuggestion } from './entities/card-suggestion.entity'
 import { Card } from './entities/card.entity'
+import { CacheInterceptor } from '../../common/cache.interceptor'
 
 @Resolver()
 export class SearchResolver {
   constructor(private searchService: SearchService) {}
 
   @Query(() => SearchResult)
+  @UseInterceptors(CacheInterceptor)
   async searchCards(@Args('input') input: SearchInput) {
     console.log('=== GRAPHQL RESOLVER DEBUG ===');
     console.log('SearchResolver.searchCards called');
@@ -38,6 +41,7 @@ export class SearchResolver {
   }
 
   @Query(() => Card, { nullable: true })
+  @UseInterceptors(CacheInterceptor)
   async card(@Args('id') id: string) {
     return this.searchService.getCardById(id)
   }

@@ -1,16 +1,14 @@
 import { Injectable } from '@nestjs/common'
 import { ElasticsearchService } from '@nestjs/elasticsearch'
 import { SearchInput } from './dto/search.input'
-import { exec } from 'child_process'
-import { promisify } from 'util'
+import { PrismaService } from '../../common/prisma.service'
 import { Prisma } from '@prisma/client'
-
-const execAsync = promisify(exec)
 
 @Injectable()
 export class SearchService {
   constructor(
-    private elasticsearch: ElasticsearchService
+    private elasticsearch: ElasticsearchService,
+    private prisma: PrismaService
   ) {}
 
   async searchCards(input: SearchInput) {
@@ -29,9 +27,6 @@ export class SearchService {
     }
     
     try {
-      const { PrismaClient } = require('@prisma/client')
-      const prisma = new PrismaClient()
-      
       const searchQuery = input.query ? input.query.trim() : '';
       const page = input.page || 1;
       const limit = input.limit || 20;
@@ -127,7 +122,7 @@ export class SearchService {
         
         // Use raw SQL for complex price sorting with subquery
         const searchPattern = searchQuery ? `%${searchQuery}%` : null;
-        const cardsWithPricing = await prisma.$queryRaw`
+        const cardsWithPricing = await this.prisma.$queryRaw`
           SELECT DISTINCT c."tcgId", c.name, c.supertype, c.types, c.hp, c.rarity, 
                  c."setName", c."setSeries", c.artist, c."imageSmall", c."imageLarge", 
                  c.number, c."setReleaseDate", c."tcgplayerUrl", c.id,
@@ -144,7 +139,7 @@ export class SearchService {
         `;
         
         return {
-          total: await prisma.card.count({ where: whereClause }),
+          total: await this.prisma.card.count({ where: whereClause }),
           cards: cardsWithPricing.map((card: any) => ({
             id: card.tcgId,
             name: card.name,
@@ -173,7 +168,7 @@ export class SearchService {
       }
       
       // Regular sorting (non-price)
-      const cards = await prisma.card.findMany({
+      const cards = await this.prisma.card.findMany({
         where: whereClause,
         select: {
           tcgId: true,
@@ -198,33 +193,24 @@ export class SearchService {
       });
       
       // Get total count
-      const total = await prisma.card.count({
+      const total = await this.prisma.card.count({
         where: whereClause
       });
       
-      // Get latest prices for all cards
+      // Get latest prices efficiently with subquery
       const cardIds = cards.map(card => card.id);
-      const latestPrices = await prisma.priceHistory.findMany({
-        where: {
-          cardId: { in: cardIds }
-        },
-        select: {
-          cardId: true,
-          marketPrice: true,
-          recordedAt: true
-        },
-        orderBy: {
-          recordedAt: 'desc'
-        }
-      });
-      
-      // Create a map of cardId to latest price
       const priceMap = new Map();
-      latestPrices.forEach(price => {
-        if (!priceMap.has(price.cardId)) {
+      if (cardIds.length > 0) {
+        const latestPrices = await this.prisma.$queryRaw`
+          SELECT DISTINCT ON ("cardId") "cardId", "marketPrice"
+          FROM "PriceHistory"
+          WHERE "cardId" = ANY(${cardIds})
+          ORDER BY "cardId", "recordedAt" DESC
+        `;
+        for (const price of latestPrices as any[]) {
           priceMap.set(price.cardId, price.marketPrice);
         }
-      });
+      }
       
       // Format results with pricing
       const formattedCards = cards.map(card => ({
@@ -246,7 +232,6 @@ export class SearchService {
         tcgplayerUrl: card.tcgplayerUrl
       }));
       
-      await prisma.$disconnect();
       
       return {
         total,
@@ -370,10 +355,8 @@ export class SearchService {
 
   async getCardById(id: string) {
     try {
-      const { PrismaClient } = require('@prisma/client')
-      const prisma = new PrismaClient()
       
-      const card = await prisma.card.findUnique({
+      const card = await this.prisma.card.findUnique({
         where: { tcgId: id }
       })
       
@@ -382,7 +365,7 @@ export class SearchService {
       }
       
       // Get the latest price from PriceHistory table
-      const latestPrice = await prisma.priceHistory.findFirst({
+      const latestPrice = await this.prisma.priceHistory.findFirst({
         where: { cardId: card.id },
         orderBy: { recordedAt: 'desc' }
       })
