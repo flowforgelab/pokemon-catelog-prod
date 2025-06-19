@@ -30,37 +30,12 @@ const handler = NextAuth({
     strategy: 'database', // Use database sessions for better reliability
     maxAge: 30 * 24 * 60 * 60, // 30 days
   },
-  debug: true, // Enable debug logging in all environments temporarily
+  debug: process.env.NODE_ENV === 'development',
   pages: {
     signIn: '/auth/signin',
     error: '/auth/error',
   },
   callbacks: {
-    async redirect({ url, baseUrl }) {
-      console.log(`[NextAuth Debug] Redirect callback:`, { url, baseUrl })
-      
-      // Handle relative URLs
-      if (url.startsWith("/")) {
-        const redirectUrl = `${baseUrl}${url}`
-        console.log(`[NextAuth Debug] Redirecting to relative URL:`, redirectUrl)
-        return redirectUrl
-      }
-      
-      // Handle same origin URLs
-      try {
-        const urlObj = new URL(url)
-        const baseUrlObj = new URL(baseUrl)
-        if (urlObj.origin === baseUrlObj.origin) {
-          console.log(`[NextAuth Debug] Redirecting to same origin:`, url)
-          return url
-        }
-      } catch (error) {
-        console.error(`[NextAuth Debug] Error parsing URLs:`, error)
-      }
-      
-      console.log(`[NextAuth Debug] Default redirect to base URL:`, baseUrl)
-      return baseUrl
-    },
     
     async signIn({ user, account, profile, email, credentials }) {
       console.log(`[NextAuth Debug] SignIn callback:`, {
