@@ -1,17 +1,28 @@
-import { getServerSession } from 'next-auth'
-import { redirect } from 'next/navigation'
-import { authOptions } from '@/lib/nextauth.config'
+import NextAuth from "next-auth"
+import Google from "next-auth/providers/google"
 
-export async function requireAuth() {
-  const session = await getServerSession(authOptions)
-  
-  if (!session?.user) {
-    redirect('/auth/signin')
-  }
-  
-  return session
-}
-
-export async function getOptionalAuth() {
-  return await getServerSession(authOptions)
-}
+export const { handlers, signIn, signOut, auth } = NextAuth({
+  providers: [
+    Google({
+      clientId: process.env.GOOGLE_CLIENT_ID!,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+    }),
+  ],
+  callbacks: {
+    async session({ session, token }) {
+      if (token.sub && session.user) {
+        session.user.id = token.sub
+      }
+      return session
+    },
+    async jwt({ token, user }) {
+      if (user) {
+        token.sub = user.id
+      }
+      return token
+    },
+  },
+  pages: {
+    signIn: '/auth/signin',
+  },
+})
