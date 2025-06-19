@@ -1,9 +1,9 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 
-export default function DebugOAuth() {
+function DebugOAuthContent() {
   const searchParams = useSearchParams()
   const [urlInfo, setUrlInfo] = useState<any>(null)
 
@@ -57,5 +57,13 @@ export default function DebugOAuth() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function DebugOAuth() {
+  return (
+    <Suspense fallback={<div className="container mx-auto p-8">Loading debug info...</div>}>
+      <DebugOAuthContent />
+    </Suspense>
   )
 }
