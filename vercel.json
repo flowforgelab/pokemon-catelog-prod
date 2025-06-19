@@ -3,10 +3,11 @@
   "env": {
     "NODE_ENV": "production"
   },
-  "buildCommand": "cd ../.. && pnpm install && pnpm build --filter=@pokemon-catalog/web",
+  "buildCommand": "cd ../.. && pnpm vercel-build",
   "installCommand": "cd ../.. && pnpm install",
   "framework": "nextjs",
   "outputDirectory": "apps/web/.next",
+  "rootDirectory": "apps/web",
   "functions": {
     "apps/web/src/app/api/auth/[...nextauth]/route.ts": {
       "maxDuration": 10

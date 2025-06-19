@@ -8,16 +8,16 @@
   ],
   "scripts": {
     "dev": "turbo dev",
-    "build": "turbo build",
-    "build:web": "pnpm --filter web build",
-    "build:api": "pnpm --filter api build",
+    "build": "pnpm --filter @pokemon-catalog/database db:generate && turbo build",
+    "build:web": "pnpm --filter @pokemon-catalog/database db:generate && pnpm --filter web build",
+    "build:api": "pnpm --filter @pokemon-catalog/database db:generate && pnpm --filter api build",
     "test": "turbo test",
     "lint": "turbo lint",
     "type-check": "turbo type-check",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
     "db:migrate": "pnpm --filter @pokemon-catalog/database migrate",
     "db:studio": "pnpm --filter @pokemon-catalog/database studio",
-    "vercel-build": "pnpm build"
+    "vercel-build": "pnpm --filter @pokemon-catalog/database db:generate && pnpm build:web"
   },
   "devDependencies": {
     "@playwright/test": "^1.53.0",
