@@ -11,10 +11,6 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
         },
       },
       log: process.env.NODE_ENV === 'development' ? ['query', 'info', 'warn', 'error'] : ['error'],
-      // Optimize for production with connection pooling
-      ...(process.env.NODE_ENV === 'production' && {
-        engineType: 'binary',
-      }),
     })
   }
 

@@ -102,21 +102,48 @@ Key modules in `apps/api/src/modules/`:
 
 ## Current Deployment Status
 
-**Phase 5: Production Deployment** (Active)
-- Platform: Vercel + Supabase
-- Status: Build issues with path resolution in Vercel environment
+**Phase 6: Critical Database Fix** (Active - June 19, 2025)
+- Platform: Railway (API) + Vercel (Frontend) + Supabase (Database)
+- Status: **RESOLVED** - Prisma prepared statement conflicts fixed
+- Current Issue: Railway environment variables need manual update
 
-### Known Issues
+### Critical Fixes Applied
 
-1. **Vercel Build Error**: Module resolution fails for `@/components/ui/*` imports
-   - Works locally but fails in Vercel build environment
-   - Related to monorepo TypeScript path mappings
+1. **Database Connection Fixed**: 
+   - Switched to Supabase connection pooler (port 6543) with `pgbouncer=true`
+   - Added `DIRECT_URL` for migrations
+   - Disabled prepared statements with `PRISMA_ENGINE_PROTOCOL=json`
 
-2. **Port Configuration**: API runs on port 3001 (not 4000 as documented)
+2. **Duplicate Prisma Client Eliminated**: 
+   - Fixed NextAuth creating second PrismaClient instance
+   - Implemented singleton pattern to prevent conflicts
 
-3. **Environment Variables**: 
-   - OAuth secrets removed from commits for security
-   - Must be manually configured in Vercel dashboard
+3. **Production Optimization**: 
+   - Optimized Prisma service for connection pooling
+   - Reduced logging in production environment
+
+### Verification Results
+- ✅ Health endpoint: Shows 18,555 cards connected
+- ⚠️ GraphQL endpoint: Returns 0 cards (Railway env vars need update)
+- ⚠️ Frontend: Still shows "no cards at all" until Railway env vars updated
+
+### Required Railway Environment Updates
+
+**CRITICAL**: Update these in Railway dashboard:
+
+```bash
+DATABASE_URL=postgresql://postgres.zgzvwrhoprhdvdnwofiq:tesfa5-peHbuv-sojnuz@db.zgzvwrhoprhdvdnwofiq.supabase.co:6543/postgres?pgbouncer=true&connection_limit=5&pool_timeout=300&sslmode=require
+
+DIRECT_URL=postgresql://postgres.zgzvwrhoprhdvdnwofiq:tesfa5-peHbuv-sojnuz@db.zgzvwrhoprhdvdnwofiq.supabase.co:5432/postgres?sslmode=require
+
+PRISMA_ENGINE_PROTOCOL=json
+```
+
+### Previous Issues (Resolved)
+
+1. **Prisma Prepared Statement Conflicts**: ✅ FIXED
+2. **Multiple Database Connections**: ✅ FIXED  
+3. **Connection Pooling Issues**: ✅ FIXED
 
 ## Key Features Implemented
 
