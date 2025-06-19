@@ -54,7 +54,8 @@ function mapCardData(card) {
     attacks: card.attacks || [],
     weaknesses: card.weaknesses || [],
     resistances: card.resistances || [],
-    marketPrice: card.tcgplayer?.prices?.holofoil?.market || card.tcgplayer?.prices?.normal?.market || null
+    marketPrice: card.tcgplayer?.prices?.holofoil?.market || card.tcgplayer?.prices?.normal?.market || null,
+    tcgplayerUrl: card.tcgplayer?.url || null
   };
 }
 
@@ -64,8 +65,8 @@ async function importBatch(client, cards) {
   
   cards.forEach((card, index) => {
     const mapped = mapCardData(card);
-    const offset = index * 27;
-    placeholders.push(`($${offset+1}, $${offset+2}, $${offset+3}, $${offset+4}, $${offset+5}, $${offset+6}, $${offset+7}, $${offset+8}, $${offset+9}, $${offset+10}, $${offset+11}, $${offset+12}, $${offset+13}, $${offset+14}, $${offset+15}, $${offset+16}, $${offset+17}, $${offset+18}, $${offset+19}, $${offset+20}, $${offset+21}, $${offset+22}, $${offset+23}, $${offset+24}, $${offset+25}, $${offset+26}, $${offset+27})`);
+    const offset = index * 28;
+    placeholders.push(`($${offset+1}, $${offset+2}, $${offset+3}, $${offset+4}, $${offset+5}, $${offset+6}, $${offset+7}, $${offset+8}, $${offset+9}, $${offset+10}, $${offset+11}, $${offset+12}, $${offset+13}, $${offset+14}, $${offset+15}, $${offset+16}, $${offset+17}, $${offset+18}, $${offset+19}, $${offset+20}, $${offset+21}, $${offset+22}, $${offset+23}, $${offset+24}, $${offset+25}, $${offset+26}, $${offset+27}, $${offset+28})`);
     
     values.push(
       mapped.id, mapped.tcgId, mapped.name, mapped.supertype, mapped.subtypes,
@@ -73,7 +74,7 @@ async function importBatch(client, cards) {
       mapped.rarity, mapped.flavorText, mapped.setId, mapped.setName, mapped.setSeries,
       mapped.setPrintedTotal, mapped.setTotal, mapped.setReleaseDate, mapped.imageSmall, mapped.imageLarge,
       mapped.nationalPokedexNumbers, mapped.rules, mapped.abilities, mapped.attacks, mapped.weaknesses, mapped.resistances,
-      mapped.marketPrice
+      mapped.marketPrice, mapped.tcgplayerUrl
     );
   });
 
@@ -83,7 +84,7 @@ async function importBatch(client, cards) {
       number, artist, rarity, "flavorText", "setId", "setName", "setSeries",
       "setPrintedTotal", "setTotal", "setReleaseDate", "imageSmall", "imageLarge",
       "nationalPokedexNumbers", rules, abilities, attacks, weaknesses, resistances,
-      "marketPrice"
+      "marketPrice", "tcgplayerUrl"
     ) VALUES ${placeholders.join(', ')}
     ON CONFLICT ("tcgId") DO NOTHING
   `;

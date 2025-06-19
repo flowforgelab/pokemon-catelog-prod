@@ -126,7 +126,7 @@ export class SearchService {
           SELECT DISTINCT c."tcgId", c.name, c.supertype, c.types, c.hp, c.rarity, 
                  c."setName", c."setSeries", c.artist, c."imageSmall", c."imageLarge", 
                  c.number, c."setReleaseDate", c."tcgplayerUrl", c.id,
-                 COALESCE(ph."marketPrice", 0) as "marketPrice"
+                 COALESCE(c."marketPrice", ph."marketPrice", 0) as "marketPrice"
           FROM "Card" c
           LEFT JOIN (
             SELECT DISTINCT ON ("cardId") "cardId", "marketPrice"
@@ -134,7 +134,7 @@ export class SearchService {
             ORDER BY "cardId", "recordedAt" DESC
           ) ph ON c.id = ph."cardId"
           ${searchPattern ? Prisma.sql`WHERE c.name ILIKE ${searchPattern}` : Prisma.empty}
-          ORDER BY COALESCE(ph."marketPrice", 0) ${direction === 'DESC' ? Prisma.sql`DESC` : Prisma.sql`ASC`}, c.name ASC
+          ORDER BY COALESCE(c."marketPrice", ph."marketPrice", 0) ${direction === 'DESC' ? Prisma.sql`DESC` : Prisma.sql`ASC`}, c.name ASC
           LIMIT ${limit} OFFSET ${skip}
         `;
         
@@ -185,7 +185,8 @@ export class SearchService {
           number: true,
           setReleaseDate: true,
           tcgplayerUrl: true,
-          id: true // Need internal ID for price lookup
+          marketPrice: true, // Include direct market price from Card table
+          id: true // Need internal ID for PriceHistory lookup if needed
         },
         orderBy: orderBy,
         skip: skip,
@@ -197,8 +198,8 @@ export class SearchService {
         where: whereClause
       });
       
-      // Get latest prices efficiently with subquery
-      const cardIds = cards.map(card => card.id);
+      // Get latest prices from PriceHistory only for cards without direct pricing
+      const cardIds = cards.filter(card => !card.marketPrice).map(card => card.id);
       const priceMap = new Map();
       if (cardIds.length > 0) {
         const latestPrices = await this.prisma.$queryRaw`
@@ -228,7 +229,7 @@ export class SearchService {
         number: card.number,
         setReleaseDate: card.setReleaseDate?.toISOString(),
         animeEra: getAnimeEra(card.setSeries),
-        marketPrice: priceMap.get(card.id) || null,
+        marketPrice: card.marketPrice || priceMap.get(card.id) || null,
         tcgplayerUrl: card.tcgplayerUrl
       }));
       
@@ -395,7 +396,7 @@ export class SearchService {
         resistances: card.resistances,
         standardLegal: card.standardLegal,
         expandedLegal: card.expandedLegal,
-        marketPrice: latestPrice?.marketPrice || null,
+        marketPrice: card.marketPrice || latestPrice?.marketPrice || null,
         createdAt: card.createdAt,
         updatedAt: card.updatedAt
       }
