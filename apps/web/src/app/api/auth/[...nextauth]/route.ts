@@ -27,73 +27,84 @@ const handler = NextAuth({
     }),
   ],
   session: {
-    strategy: 'jwt', // Keep JWT strategy
+    strategy: 'database', // Use database sessions for better reliability
     maxAge: 30 * 24 * 60 * 60, // 30 days
   },
-  jwt: {
-    secret: process.env.NEXTAUTH_SECRET,
-  },
-  debug: process.env.NODE_ENV === 'development',
+  debug: true, // Enable debug logging in all environments temporarily
   pages: {
     signIn: '/auth/signin',
     error: '/auth/error',
   },
   callbacks: {
     async redirect({ url, baseUrl }) {
-      // Allows relative callback URLs
-      if (url.startsWith("/")) return `${baseUrl}${url}`
-      // Allows callback URLs on the same origin
-      else if (new URL(url).origin === baseUrl) return url
+      console.log(`[NextAuth Debug] Redirect callback:`, { url, baseUrl })
+      
+      // Handle relative URLs
+      if (url.startsWith("/")) {
+        const redirectUrl = `${baseUrl}${url}`
+        console.log(`[NextAuth Debug] Redirecting to relative URL:`, redirectUrl)
+        return redirectUrl
+      }
+      
+      // Handle same origin URLs
+      try {
+        const urlObj = new URL(url)
+        const baseUrlObj = new URL(baseUrl)
+        if (urlObj.origin === baseUrlObj.origin) {
+          console.log(`[NextAuth Debug] Redirecting to same origin:`, url)
+          return url
+        }
+      } catch (error) {
+        console.error(`[NextAuth Debug] Error parsing URLs:`, error)
+      }
+      
+      console.log(`[NextAuth Debug] Default redirect to base URL:`, baseUrl)
       return baseUrl
     },
-    async jwt({ token, user, account }) {
-      if (user && account) {
-        // New login - get JWT from our backend
-        try {
-          const response = await fetch(`${process.env.NEXT_PUBLIC_GRAPHQL_URL || 'https://pokemon-catelog-prod-production.up.railway.app/graphql'}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              query: `mutation OAuthLogin($email: String!, $name: String) {
-                oauthLogin(email: $email, name: $name) {
-                  accessToken
-                  user { id email name }
-                }
-              }`,
-              variables: {
-                email: user.email,
-                name: user.name
-              }
-            })
-          })
-          
-          const data = await response.json()
-          if (data.data?.oauthLogin?.accessToken) {
-            token.accessToken = data.data.oauthLogin.accessToken
-            token.backendUserId = data.data.oauthLogin.user.id
-          }
-        } catch (error) {
-          console.error('Failed to get backend token:', error)
-        }
-        
-        token.id = user.id
-        token.email = user.email
-        token.name = user.name
-        token.image = user.image
-      }
-      return token
+    
+    async signIn({ user, account, profile, email, credentials }) {
+      console.log(`[NextAuth Debug] SignIn callback:`, {
+        userEmail: user.email,
+        provider: account?.provider,
+        accountType: account?.type
+      })
+      
+      // Always allow sign in for OAuth providers
+      return true
     },
-    async session({ session, token }) {
-      if (token && session.user) {
-        session.user.id = token.id as string
-        session.user.email = token.email as string
-        session.user.name = token.name as string
-        session.user.image = token.image as string
-        // @ts-ignore
-        session.accessToken = token.accessToken
+    
+    async session({ session, user, token }) {
+      console.log(`[NextAuth Debug] Session callback:`, {
+        sessionUser: session.user?.email,
+        dbUser: user?.email,
+        hasToken: !!token
+      })
+      
+      // Add user ID to session
+      if (user && session.user) {
+        session.user.id = user.id
       }
+      
       return session
     },
+  },
+  events: {
+    async signIn(message) {
+      console.log(`[NextAuth Debug] SignIn event:`, message.user.email)
+    },
+    async signOut(message) {
+      console.log(`[NextAuth Debug] SignOut event:`, message.session)
+    },
+    async createUser(message) {
+      console.log(`[NextAuth Debug] CreateUser event:`, message.user.email)
+    },
+    async linkAccount(message) {
+      console.log(`[NextAuth Debug] LinkAccount event:`, message.user.email)
+    },
+    async session(message) {
+      console.log(`[NextAuth Debug] Session event:`, message.session.user?.email)
+    },
+  },
 })
 
 export { handler as GET, handler as POST }
