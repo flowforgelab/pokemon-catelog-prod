@@ -23,7 +23,7 @@ export async function GET() {
         nodeEnv: process.env.NODE_ENV,
         vercelEnv: process.env.VERCEL_ENV
       },
-      possibleIssues: []
+      possibleIssues: [] as string[]
     }
 
     // Analyze potential issues
