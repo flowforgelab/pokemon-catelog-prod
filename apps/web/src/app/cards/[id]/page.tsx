@@ -139,7 +139,17 @@ function CardDetailContent({ id }: { id: string }) {
                     onClick={() => window.open(card.tcgplayerUrl, '_blank')}
                   >
                     <ShoppingCart className="h-4 w-4 mr-2" />
-                    Buy on TCGPlayer
+                    View on TCGPlayer
+                    <ExternalLink className="h-4 w-4 ml-2" />
+                  </Button>
+                ) : card.marketPrice ? (
+                  <Button 
+                    variant="outline" 
+                    className="w-full" 
+                    onClick={() => window.open(`https://www.tcgplayer.com/search/pokemon/product?productLineName=pokemon&q=${encodeURIComponent(card.name)}&view=grid`, '_blank')}
+                  >
+                    <ShoppingCart className="h-4 w-4 mr-2" />
+                    Search on TCGPlayer
                     <ExternalLink className="h-4 w-4 ml-2" />
                   </Button>
                 ) : (
