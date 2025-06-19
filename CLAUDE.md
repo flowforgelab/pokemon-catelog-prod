@@ -5,7 +5,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Project Overview
 
 Enterprise-grade Pokemon TCG platform with:
-- User authentication and profiles (NextAuth.js with Google/GitHub OAuth)
+- User authentication and profiles (Better Auth with Google OAuth)
 - Collection management with real-time pricing (93% coverage)
 - Deck building with validation and AI-powered analysis
 - Advanced search with 18,555+ cards
@@ -80,17 +80,18 @@ scripts/         # Data import, TCGPlayer updates, testing utilities
 ### Tech Stack
 - **Frontend**: Next.js 15, React 19, TypeScript, Tailwind CSS, shadcn/ui, Apollo Client
 - **Backend**: NestJS, GraphQL, Prisma, PostgreSQL, Redis
-- **Auth**: NextAuth.js with database sessions (Google/GitHub OAuth)
+- **Auth**: Better Auth with Prisma adapter (Google OAuth)
 - **Deployment**: Railway (API), Vercel (Frontend), Supabase (Database)
 - **Build**: Turborepo, pnpm workspaces
 
 ### Key Architectural Patterns
 
 **Authentication Flow**:
-- NextAuth.js configuration in `src/lib/nextauth.config.ts` 
-- Database session strategy with PrismaAdapter
-- Session verification via `getServerSession(authOptions)` pattern
+- Better Auth configuration in `src/lib/auth.ts` 
+- Prisma adapter with PostgreSQL session storage
+- Client-side auth via `useSession`, `signIn`, `signOut` from `src/lib/auth-client.ts`
 - Protected routes use `ProtectedRoute` component wrapper
+- API route handler at `/api/auth/[...all]` using `toNextJsHandler`
 
 **GraphQL API Structure** (`apps/api/src/modules/`):
 - `auth/` - JWT authentication, OAuth login/signup
@@ -131,30 +132,27 @@ scripts/         # Data import, TCGPlayer updates, testing utilities
 - **Database schema**: `DeckAnalysis` table storing AI analysis results
 - **GraphQL API**: `analyzeDeck` mutation, `deckAnalysis`/`deckRecommendations` queries
 - **Smart pricing system**: Tiered update schedule (daily hot cards, weekly standard, monthly all)
+- **✅ Authentication Migration**: Successfully migrated from NextAuth v4 to Better Auth for Next.js 15 compatibility
 
-### 🔧 Critical Issues
-1. **NextAuth OAuth Redirect Loop**: 
-   - Google OAuth completes but redirects back to signin page
-   - Multiple comprehensive fixes attempted (authOptions, database sessions, middleware)
-   - Blocks testing of deck analysis features
-   - Debug endpoints available: `/test-env`, `/auth-test-comprehensive`, `/debug-oauth`
-
-2. **TCGPlayer URL Completion**:
+### 🔧 Current Issues
+1. **TCGPlayer URL Completion**:
    - Background script updating ~12,735 remaining cards with purchase links
    - Rate-limited by Pokemon TCG API (2-second delays)
    - Affects user purchase experience but not core functionality
 
 ### 📅 Next Phase
 - **Phase 2**: Collection-to-deck builder (budget optimization, owned card filtering)
-- **Prerequisite**: Resolve NextAuth redirect loop to enable full testing
+- **Phase 3**: Enhanced AI features with collection integration
 
 ## Important Development Patterns
 
-### NextAuth.js Integration
-- **Configuration**: `src/lib/nextauth.config.ts` exports `authOptions`
-- **Session Verification**: Always use `getServerSession(authOptions)`, never without the parameter
+### Better Auth Integration
+- **Configuration**: `src/lib/auth.ts` exports Better Auth instance with Prisma adapter
+- **Client Usage**: Import `useSession`, `signIn`, `signOut` from `src/lib/auth-client.ts`
+- **Sign In**: Use `signIn.social({ provider: 'google' })` for OAuth
 - **Protected Routes**: Wrap components with `<ProtectedRoute>` for auth-required pages
-- **Database Sessions**: Uses PrismaAdapter with database session storage (more reliable than JWT)
+- **Database Sessions**: Uses Better Auth Prisma adapter with PostgreSQL session storage
+- **API Handler**: `/api/auth/[...all]/route.ts` handles all auth endpoints
 
 ### GraphQL Patterns
 - **Apollo Client**: Configured in `src/lib/apollo-client.ts` with auth headers
@@ -189,12 +187,12 @@ scripts/         # Data import, TCGPlayer updates, testing utilities
 ### Environment Configuration
 **Production Environment Variables**:
 ```bash
-DATABASE_URL=postgresql://...          # Supabase connection
-NEXTAUTH_SECRET=64-byte-hex-string     # Auth secret  
-NEXTAUTH_URL=https://domain.vercel.app # Exact production URL
-GOOGLE_CLIENT_ID=oauth-client-id       # Google OAuth
-GOOGLE_CLIENT_SECRET=oauth-secret      # Google OAuth
-NEXT_PUBLIC_GRAPHQL_URL=https://api... # Railway API URL
+DATABASE_URL=postgresql://...             # Supabase connection
+BETTER_AUTH_SECRET=64-byte-hex-string     # Better Auth secret  
+BETTER_AUTH_URL=https://domain.vercel.app # Exact production URL
+GOOGLE_CLIENT_ID=oauth-client-id          # Google OAuth
+GOOGLE_CLIENT_SECRET=oauth-secret         # Google OAuth
+NEXT_PUBLIC_GRAPHQL_URL=https://api...    # Railway API URL
 ```
 
 ## Key GraphQL Operations
@@ -234,24 +232,23 @@ query MyCollections {
 }
 ```
 
-## Critical Known Issues
+## Recent Major Updates
 
-### NextAuth OAuth Redirect Loop
-**Status**: UNRESOLVED despite multiple comprehensive fix attempts
-**Impact**: Blocks user authentication, preventing deck analysis testing
-**Debug Tools**: 
-- `/test-env` - Environment variable verification
-- `/auth-test-comprehensive` - Interactive auth testing 
-- `/debug-oauth` - OAuth flow debugging
+### Better Auth Migration (June 19, 2025)
+**Status**: ✅ COMPLETED - Authentication fully migrated from NextAuth v4 to Better Auth
+**Impact**: Resolves Next.js 15 + React 19 compatibility issues that were blocking OAuth authentication
 
-**Attempted Fixes**:
-- Fixed `getServerSession(authOptions)` parameter issue
-- Database session strategy implementation
-- Middleware exclusion of `/api/auth` routes
-- VerificationToken table addition
-- Google OAuth configuration verification
+**Migration Summary**:
+- **Removed**: NextAuth v4 due to incompatibility with Next.js 15.3.3 + React 19.1.0
+- **Added**: Better Auth v1.2.9 with full Next.js 15 support
+- **Database**: Added `createdAt`/`updatedAt` fields to Account/Session tables for Better Auth compatibility
+- **API Routes**: Replaced `/api/auth/[...nextauth]` with `/api/auth/[...all]` using Better Auth handlers
+- **Client**: Updated all components to use Better Auth React client (`useSession`, `signIn.social()`, etc.)
+- **Build**: ✅ Next.js build now passes successfully
 
-**Next Investigation Areas**:
-- Google Cloud Console redirect URI configuration
-- NextAuth v4 + Next.js 15 compatibility issues
-- Production domain/CORS issues
+**Key Changes**:
+- Auth config: `src/lib/auth.ts` (Better Auth instance)
+- Client setup: `src/lib/auth-client.ts` (React hooks)
+- Google OAuth: `signIn.social({ provider: 'google' })` 
+- Session handling: Compatible with existing `ProtectedRoute` patterns
+- Environment: Uses `BETTER_AUTH_SECRET` and `BETTER_AUTH_URL`
