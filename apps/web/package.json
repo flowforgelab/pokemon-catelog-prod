@@ -9,8 +9,7 @@
     "lint": "next lint",
     "test": "jest",
     "test:watch": "jest --watch",
-    "test:e2e": "playwright test",
-    "postinstall": "prisma generate"
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "@apollo/client": "^3.11.12",
