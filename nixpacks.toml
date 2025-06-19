@@ -10,7 +10,8 @@ dependsOn = ["install"]
 cmds = ["pnpm --filter @pokemon-catalog/api build"]
 
 [start]
-cmd = "cd apps/api && node dist/main.js"
+cmd = "cd apps/api && node --no-deprecation dist/main.js"
 
 [variables]
 NODE_ENV = "production"
+NODE_OPTIONS = "--no-deprecation"
