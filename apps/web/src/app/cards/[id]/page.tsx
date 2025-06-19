@@ -14,7 +14,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 
 function CardDetailContent({ id }: { id: string }) {
   const searchParams = useSearchParams()
-  const returnURL = searchParams.get('return') || '/cards'
+  const returnURL = searchParams?.get('return') || '/cards'
   
   // Fetch individual card data
   const { data, loading, error } = useQuery(GET_CARD_BY_ID, {

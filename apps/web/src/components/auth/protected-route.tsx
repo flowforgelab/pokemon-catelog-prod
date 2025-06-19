@@ -1,6 +1,6 @@
 'use client'
 
-import { useSession } from 'next-auth/react'
+import { useSession } from '@/lib/auth-client'
 import { useRouter } from 'next/navigation'
 import { useEffect } from 'react'
 
@@ -9,17 +9,17 @@ interface ProtectedRouteProps {
 }
 
 export function ProtectedRoute({ children }: ProtectedRouteProps) {
-  const { data: session, status } = useSession()
+  const { data: session, isPending } = useSession()
   const router = useRouter()
 
   useEffect(() => {
-    if (status === 'loading') return
+    if (isPending) return
     if (!session) {
       router.push('/')
     }
-  }, [session, status, router])
+  }, [session, isPending, router])
 
-  if (status === 'loading') {
+  if (isPending) {
     return <div className="flex items-center justify-center min-h-screen">Loading...</div>
   }
 

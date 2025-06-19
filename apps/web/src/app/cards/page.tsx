@@ -43,12 +43,12 @@ const getSortOrder = (sortBy: string) => {
 function CardsContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
-  const [searchQuery, setSearchQuery] = useState(searchParams.get('search') || '')
+  const [searchQuery, setSearchQuery] = useState(searchParams?.get('search') || '')
   const [selectedTypes, setSelectedTypes] = useState<string[]>([])
   const [selectedAnimeEras, setSelectedAnimeEras] = useState<string[]>([])
   const [sortBy, setSortBy] = useState('name')
   const [showFilters, setShowFilters] = useState(false)
-  const [currentPage, setCurrentPage] = useState(parseInt(searchParams.get('page') || '1'))
+  const [currentPage, setCurrentPage] = useState(parseInt(searchParams?.get('page') || '1'))
   const [previousPage, setPreviousPage] = useState(1) // Store previous page before search
   const cardsPerPage = 20
 
@@ -68,8 +68,8 @@ function CardsContent() {
 
   // Update search when URL params change
   useEffect(() => {
-    const search = searchParams.get('search') || ''
-    const page = parseInt(searchParams.get('page') || '1')
+    const search = searchParams?.get('search') || ''
+    const page = parseInt(searchParams?.get('page') || '1')
     setSearchQuery(search)
     setCurrentPage(page)
   }, [searchParams])

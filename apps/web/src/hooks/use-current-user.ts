@@ -1,11 +1,11 @@
 'use client'
 
 import { useQuery } from '@apollo/client'
-import { useSession } from 'next-auth/react'
+import { useSession } from '@/lib/auth-client'
 import { GET_ME } from '@/lib/graphql/queries'
 
 export function useCurrentUser() {
-  const { data: session, status } = useSession()
+  const { data: session, isPending } = useSession()
   
   const { data, loading, error } = useQuery(GET_ME, {
     skip: !session?.user?.email,
@@ -14,7 +14,7 @@ export function useCurrentUser() {
 
   return {
     user: data?.me || session?.user,
-    loading: status === 'loading' || loading,
+    loading: isPending || loading,
     error,
     isAuthenticated: !!session
   }

@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { Button } from '@/components/ui/button'
-import { useSession, signIn, signOut } from 'next-auth/react'
+import { useSession, signIn, signOut } from '@/lib/auth-client'
 import { cn } from '@/lib/utils'
 import { Menu, Search, User, Moon, Sun } from 'lucide-react'
 import { useTheme } from 'next-themes'
@@ -127,7 +127,7 @@ export function Navbar() {
               </DropdownMenuContent>
             </DropdownMenu>
           ) : (
-            <Button onClick={() => signIn()}>Sign In</Button>
+            <Button onClick={() => signIn.social({ provider: 'google' })}>Sign In</Button>
           )}
         </div>
       </div>

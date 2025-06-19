@@ -1,31 +1,36 @@
-import { NextAuthOptions } from 'next-auth'
-import GoogleProvider from 'next-auth/providers/google'
+import { betterAuth } from "better-auth";
+import { prismaAdapter } from "better-auth/adapters/prisma";
+import { nextCookies } from "better-auth/next-js";
+import { PrismaClient } from "@pokemon-catalog/database";
 
-export const authOptions: NextAuthOptions = {
-  providers: [
-    GoogleProvider({
+const prisma = new PrismaClient();
+
+export const auth = betterAuth({
+  database: prismaAdapter(prisma, {
+    provider: "postgresql",
+  }),
+  
+  session: {
+    expiresIn: 60 * 60 * 24 * 7, // 7 days
+    updateAge: 60 * 60 * 24, // 1 day
+    cookieCache: {
+      enabled: true,
+      maxAge: 60 * 5, // 5 minutes
+    }
+  },
+
+  // Configure social providers (keeping Google OAuth)
+  socialProviders: {
+    google: {
       clientId: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-    }),
-  ],
-  session: {
-    strategy: 'jwt',
-  },
-  secret: process.env.NEXTAUTH_SECRET,
-  debug: true,
-  useSecureCookies: true,
-  callbacks: {
-    async jwt({ token, user }) {
-      if (user) {
-        token.id = user.id
-      }
-      return token
-    },
-    async session({ session, token }) {
-      if (token && session.user) {
-        session.user.id = token.id as string
-      }
-      return session
     },
   },
-}
+
+  // Environment configuration
+  baseURL: process.env.BETTER_AUTH_URL || process.env.NEXTAUTH_URL,
+  secret: process.env.BETTER_AUTH_SECRET || process.env.NEXTAUTH_SECRET,
+
+  // Add Next.js cookies plugin for proper cookie handling
+  plugins: [nextCookies()],
+});

@@ -1,6 +1,6 @@
 'use client'
 
-import { signIn } from 'next-auth/react'
+import { signIn } from '@/lib/auth-client'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -69,7 +69,7 @@ export default function LoginPage() {
           <div className="grid gap-2">
             <Button
               variant="outline"
-              onClick={() => signIn('google')}
+              onClick={() => signIn.social({ provider: 'google' })}
               className="w-full"
             >
               <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
@@ -94,7 +94,7 @@ export default function LoginPage() {
             </Button>
             <Button
               variant="outline"
-              onClick={() => signIn('github')}
+              onClick={() => signIn.social({ provider: 'github' })}
               className="w-full"
             >
               <svg className="mr-2 h-4 w-4" fill="currentColor" viewBox="0 0 24 24">
