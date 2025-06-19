@@ -140,7 +140,7 @@ export class SearchService {
         
         return {
           total: await this.prisma.card.count({ where: whereClause }),
-          cards: cardsWithPricing.map((card: any) => ({
+          cards: (cardsWithPricing as any[]).map((card: any) => ({
             id: card.tcgId,
             name: card.name,
             supertype: card.supertype,
