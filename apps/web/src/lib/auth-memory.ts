@@ -34,15 +34,16 @@ export const auth = betterAuth({
   
   // Add comprehensive error handling and logging
   logger: {
-    level: "debug", // More verbose logging for OAuth debugging
+    level: "error", // Use error level to avoid too much noise in production
     disabled: false,
   },
   
-  // Add advanced configuration for OAuth debugging
+  // Add advanced configuration for OAuth state management
   advanced: {
     generateId: () => crypto.randomUUID(),
     crossSubDomainCookies: {
       enabled: false, // Disable for single domain
-    }
+    },
+    useSecureCookies: true, // Force secure cookies in production
   },
 });
