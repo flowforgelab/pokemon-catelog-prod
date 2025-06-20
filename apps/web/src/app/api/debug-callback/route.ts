@@ -5,7 +5,7 @@ export async function GET(request: NextRequest) {
   const searchParams = Object.fromEntries(url.searchParams)
   
   // Log what Google is sending back
-  const callbackData = {
+  const callbackData: any = {
     timestamp: new Date().toISOString(),
     fullUrl: request.url,
     searchParams,
