@@ -5,9 +5,9 @@ let authHandlers: { GET: any; POST: any } | null = null;
 let initError: Error | null = null;
 
 try {
-  const { auth } = require("@/lib/auth-memory");
+  const { auth } = require("@/lib/auth");
   authHandlers = toNextJsHandler(auth);
-  console.log("✅ Better Auth handlers created successfully with memory sessions");
+  console.log("✅ Better Auth handlers created successfully with database sessions");
 } catch (error) {
   initError = error instanceof Error ? error : new Error('Unknown initialization error');
   console.error("❌ Failed to create Better Auth handlers:", error);

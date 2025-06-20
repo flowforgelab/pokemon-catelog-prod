@@ -1,5 +1,10 @@
 # Pokemon Card Catalog - Production Deployment Status
 
+⚠️ **DEPRECATION NOTICE**: This production system is being migrated to a simplified architecture. See [pokemon-catalog-stable](../pokemon-catalog-stable/MIGRATION-PLAN.md) for the new system.
+
+**Migration Timeline**: June 20 - July 15, 2025  
+**Reason**: OAuth authentication issues with Better Auth + Next.js 15 compatibility problems
+
 This is the enterprise-grade Pokemon Card Catalog, now **LIVE IN PRODUCTION** with 18,555+ cards imported and AI-powered deck analysis features.
 
 ## 🚀 **CURRENT STATUS: PHASE 1 AI FEATURES COMPLETED, AUTH ISSUE BLOCKING**
@@ -269,3 +274,26 @@ The Pokemon Catalog is **LIVE IN PRODUCTION** with:
 
 ---
 **Generated with Claude Code** - Last updated: December 19, 2024
+
+---
+
+## 🔄 Migration to Stable Version
+
+**As of June 20, 2025**, this production system is being replaced with a simplified architecture:
+
+### Why We're Migrating
+1. **Authentication Issues**: Better Auth incompatible with Next.js 15, causing OAuth redirect loops
+2. **Complexity**: Three separate services (Vercel + Railway + Supabase) create unnecessary overhead
+3. **Cost**: Current setup costs ~$65/month vs ~$25/month for simplified stack
+4. **Maintenance**: GraphQL adds complexity without providing significant benefits for this use case
+
+### New Architecture
+- **Everything on Vercel**: Next.js 14 + Vercel Postgres + API Routes
+- **Clerk for Auth**: Proven solution that "just works" with OAuth
+- **No GraphQL**: Simple REST API with Next.js API routes
+- **Same Features**: All functionality will be preserved
+
+### Migration Resources
+- 📋 [Migration Document](../pokemon-catalog-stable/MIGRATION.md) - All-in-one migration plan with progress tracking
+
+**Note**: This system will remain operational during migration to ensure zero downtime.
