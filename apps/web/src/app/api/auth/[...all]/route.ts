@@ -2,13 +2,20 @@ import { toNextJsHandler } from "better-auth/next-js";
 import { NextRequest, NextResponse } from "next/server";
 
 let authHandlers: { GET: any; POST: any } | null = null;
+let initError: Error | null = null;
 
 try {
   const { auth } = require("@/lib/auth-memory");
   authHandlers = toNextJsHandler(auth);
   console.log("✅ Better Auth handlers created successfully with memory sessions");
 } catch (error) {
+  initError = error instanceof Error ? error : new Error('Unknown initialization error');
   console.error("❌ Failed to create Better Auth handlers:", error);
+  console.error("❌ Full initialization error:", {
+    message: initError.message,
+    stack: initError.stack,
+    timestamp: new Date().toISOString()
+  });
 }
 
 export async function GET(request: NextRequest) {
@@ -16,7 +23,12 @@ export async function GET(request: NextRequest) {
     if (!authHandlers) {
       console.error("❌ Auth handlers not initialized");
       return NextResponse.json(
-        { error: "Authentication not initialized", details: "Auth handlers failed to load" },
+        { 
+          error: "Authentication not initialized", 
+          details: "Auth handlers failed to load",
+          initError: initError?.message || "Unknown initialization error",
+          timestamp: new Date().toISOString()
+        },
         { status: 500 }
       );
     }
