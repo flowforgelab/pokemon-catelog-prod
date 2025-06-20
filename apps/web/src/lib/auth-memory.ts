@@ -21,8 +21,8 @@ export const auth = betterAuth({
     },
   },
 
-  // Environment configuration
-  baseURL: process.env.BETTER_AUTH_URL!,
+  // Environment configuration - ensure consistent with client
+  baseURL: process.env.BETTER_AUTH_URL || "https://pokemon-catelog-prod.vercel.app",
   secret: process.env.BETTER_AUTH_SECRET!,
 
   // Add Next.js cookies plugin

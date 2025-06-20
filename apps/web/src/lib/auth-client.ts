@@ -4,6 +4,7 @@ import { createAuthClient } from "better-auth/react";
 
 const authClient = createAuthClient({
   baseURL: 
+    process.env.NEXT_PUBLIC_BETTER_AUTH_URL ||
     process.env.NEXT_PUBLIC_BASE_URL || 
     (typeof window !== 'undefined' ? window.location.origin : '') ||
     'https://pokemon-catelog-prod.vercel.app',

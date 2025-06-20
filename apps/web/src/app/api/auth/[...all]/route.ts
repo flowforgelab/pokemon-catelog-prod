@@ -20,9 +20,27 @@ export async function GET(request: NextRequest) {
         { status: 500 }
       );
     }
+    
+    // Log OAuth callback attempts for debugging
+    const url = new URL(request.url);
+    if (url.pathname.includes('/callback/')) {
+      console.log("🔍 OAuth Callback Request:", {
+        pathname: url.pathname,
+        searchParams: Object.fromEntries(url.searchParams),
+        timestamp: new Date().toISOString()
+      });
+    }
+    
     return await authHandlers.GET(request);
   } catch (error) {
     console.error("❌ GET request failed:", error);
+    console.error("❌ Full error details:", {
+      message: error instanceof Error ? error.message : "Unknown error",
+      stack: error instanceof Error ? error.stack : undefined,
+      url: request.url,
+      timestamp: new Date().toISOString()
+    });
+    
     return NextResponse.json(
       { 
         error: "Authentication request failed", 
