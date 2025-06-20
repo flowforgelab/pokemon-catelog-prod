@@ -19,6 +19,12 @@ try {
 }
 
 export async function GET(request: NextRequest) {
+  console.log("🚀 Auth GET request received:", {
+    url: request.url,
+    pathname: new URL(request.url).pathname,
+    timestamp: new Date().toISOString()
+  });
+  
   try {
     if (!authHandlers) {
       console.error("❌ Auth handlers not initialized");
