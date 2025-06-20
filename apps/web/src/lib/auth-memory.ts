@@ -17,7 +17,8 @@ export const auth = betterAuth({
     google: {
       clientId: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-      // Let Better Auth handle the redirect URI automatically
+      // Explicitly set the scopes that Better Auth needs
+      scope: ["openid", "email", "profile"],
     },
   },
 
@@ -31,9 +32,17 @@ export const auth = betterAuth({
   // Disable database adapter entirely - use cookie-based sessions
   trustedOrigins: ["https://pokemon-catelog-prod.vercel.app"],
   
-  // Add error handling
+  // Add comprehensive error handling and logging
   logger: {
-    level: "error",
+    level: "debug", // More verbose logging for OAuth debugging
     disabled: false,
+  },
+  
+  // Add advanced configuration for OAuth debugging
+  advanced: {
+    generateId: () => crypto.randomUUID(),
+    crossSubDomainCookies: {
+      enabled: false, // Disable for single domain
+    }
   },
 });
